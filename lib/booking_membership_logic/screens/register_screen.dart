@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../database/db_helper.dart';
-import 'membership_plans_screen.dart';
+import 'package:coworkhub/database/db_helper.dart';
+import 'home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -23,22 +23,66 @@ class _RegisterScreenState extends State<RegisterScreen> {
     String email = emailController.text.trim();
     String phone = phoneController.text.trim();
 
-    if (firstName.isEmpty ||
-        lastName.isEmpty ||
-        email.isEmpty ||
-        phone.isEmpty) {
+    if (firstName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please fill all fields')),
+        SnackBar(content: Text('First name is required')),
       );
       return;
     }
 
+    if (lastName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Last name is required')),
+      );
+      return;
+    }
+
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Email is required')),
+      );
+      return;
+    }
+
+    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please enter a valid email address')),
+      );
+      return;
+    }
+
+    if (phone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Phone number is required')),
+      );
+      return;
+    }
+
+    if (phone.length < 8) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Phone number is too short')),
+      );
+      return;
+    }
+    List<Map<String, dynamic>> users = await dbHelper.getUsers();
+
+    bool emailExists = users.any((user) => user['email'] == email);
+
+    if (emailExists) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('This email is already registered')),
+      );
+      return;
+    }
     int userId = await dbHelper.insertUser({
       'first_name': firstName,
       'last_name': lastName,
       'email': email,
       'phone': phone,
     });
+
+    if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('User registered successfully')),
@@ -47,7 +91,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => MembershipPlansScreen(userId: userId),
+        builder: (context) => HomeScreen(userId: userId),
       ),
     );
   }

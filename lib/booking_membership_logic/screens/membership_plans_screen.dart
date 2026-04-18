@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'database/db_helper.dart';
-import 'workspaces_screen.dart';
+import 'package:coworkhub/database/db_helper.dart';
+import 'home_screen.dart';
 
 class MembershipPlansScreen extends StatefulWidget {
   final int userId;
@@ -29,6 +29,21 @@ class _MembershipPlansScreenState extends State<MembershipPlansScreen> {
   }
 
   Future<void> subscribeToPlan(int planId) async {
+    List<Map<String, dynamic>> memberships =
+    await dbHelper.getMembershipByUser(widget.userId);
+
+    bool hasActiveMembership = memberships.any(
+          (membership) => membership['status'] == 'Active',
+    );
+
+    if (hasActiveMembership) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('User already has an active membership')),
+      );
+      return;
+    }
+
     await dbHelper.insertMembership({
       'user_id': widget.userId,
       'plan_id': planId,
@@ -37,6 +52,8 @@ class _MembershipPlansScreenState extends State<MembershipPlansScreen> {
       'status': 'Active',
     });
 
+    if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Membership subscribed successfully')),
     );
@@ -44,7 +61,7 @@ class _MembershipPlansScreenState extends State<MembershipPlansScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => WorkspacesScreen(userId: widget.userId),
+        builder: (context) => HomeScreen(userId: widget.userId),
       ),
     );
   }

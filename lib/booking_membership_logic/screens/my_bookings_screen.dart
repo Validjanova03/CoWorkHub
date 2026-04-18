@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../database/db_helper.dart';
+import 'package:coworkhub/database/db_helper.dart';
 
 class MyBookingsScreen extends StatefulWidget {
   final int userId;

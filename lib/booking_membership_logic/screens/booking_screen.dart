@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'database/database_helper.dart';
-import 'my_bookings_screen.dart';
+import 'package:coworkhub/database/db_helper.dart';
+import 'home_screen.dart';
 
 class BookingScreen extends StatefulWidget {
   final int userId;
@@ -28,9 +28,47 @@ class _BookingScreenState extends State<BookingScreen> {
     String startTime = startTimeController.text.trim();
     String endTime = endTimeController.text.trim();
 
-    if (startTime.isEmpty || endTime.isEmpty) {
+    if (startTime.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please fill booking time fields')),
+        SnackBar(content: Text('Start time is required')),
+      );
+      return;
+    }
+
+    if (endTime.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('End time is required')),
+      );
+      return;
+    }
+
+    DateTime? startDateTime;
+    DateTime? endDateTime;
+
+    try {
+      startDateTime = DateTime.parse(startTime);
+      endDateTime = DateTime.parse(endTime);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Invalid date format. Use: 2026-04-20 10:00:00',
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (startDateTime.isBefore(DateTime.now())) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Start time cannot be in the past')),
+      );
+      return;
+    }
+
+    if (!endDateTime.isAfter(startDateTime)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('End time must be after start time')),
       );
       return;
     }
@@ -38,10 +76,12 @@ class _BookingScreenState extends State<BookingScreen> {
     await dbHelper.insertBooking({
       'user_id': widget.userId,
       'resource_id': widget.resourceId,
-      'start_time': startTime,
-      'end_time': endTime,
+      'start_time': startDateTime.toString(),
+      'end_time': endDateTime.toString(),
       'booking_status': 'Active',
     });
+
+    if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Booking created successfully')),
@@ -50,7 +90,7 @@ class _BookingScreenState extends State<BookingScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => MyBookingsScreen(userId: widget.userId),
+        builder: (context) => HomeScreen(userId: widget.userId),
       ),
     );
   }

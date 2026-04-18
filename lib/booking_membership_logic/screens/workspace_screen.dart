@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../database/db_helper.dart';
+import 'package:coworkhub/database/db_helper.dart';
 import 'booking_screen.dart';
 
 class WorkspacesScreen extends StatefulWidget {

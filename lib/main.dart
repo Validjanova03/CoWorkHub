@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'database/db_helper.dart';
 
 void main() async {
@@ -11,11 +12,18 @@ void main() async {
   print(result);
 
   runApp(const MyApp());
+=======
+import 'package:coworkhub/booking_membership_logic/screens/register_screen.dart';
+
+void main() {
+  runApp(MyApp());
+>>>>>>> a4a73171cef062a0fbdae92af0c14336bac4ad78
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+<<<<<<< HEAD
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -126,6 +134,14 @@ class _MyHomePageState extends State<MyHomePage> {
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ),
+=======
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Workspace Booking App',
+      home: RegisterScreen(),
+>>>>>>> a4a73171cef062a0fbdae92af0c14336bac4ad78
     );
   }
 }

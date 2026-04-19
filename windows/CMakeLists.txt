@@ -1,10 +1,18 @@
 # Project-level configuration.
 cmake_minimum_required(VERSION 3.14)
+<<<<<<< HEAD
 project(coworking_app LANGUAGES CXX)
 
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
 set(BINARY_NAME "coworking_app")
+=======
+project(coworkhub LANGUAGES CXX)
+
+# The name of the executable created for the application. Change this to change
+# the on-disk name of your application.
+set(BINARY_NAME "coworkhub")
+>>>>>>> a4a73171cef062a0fbdae92af0c14336bac4ad78
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.

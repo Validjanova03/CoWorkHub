@@ -1,6 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
+<<<<<<< HEAD
         android:label="coworking_app"
+=======
+        android:label="coworkhub"
+>>>>>>> a4a73171cef062a0fbdae92af0c14336bac4ad78
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

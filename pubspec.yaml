@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 name: coworking_app
+=======
+name: coworkhub
+>>>>>>> a4a73171cef062a0fbdae92af0c14336bac4ad78
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -19,7 +23,11 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
+<<<<<<< HEAD
   sdk: ^3.11.4
+=======
+  sdk: ^3.11.0
+>>>>>>> a4a73171cef062a0fbdae92af0c14336bac4ad78
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -30,12 +38,20 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+<<<<<<< HEAD
 
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   sqflite: ^2.3.3+1
   path: ^1.9.0
+=======
+  sqflite: ^2.3.0
+  path: ^1.9.0
+
+  # The following adds the Cupertino Icons font to your application.
+  # Use with the CupertinoIcons class for iOS style icons.
+>>>>>>> a4a73171cef062a0fbdae92af0c14336bac4ad78
   cupertino_icons: ^1.0.8
 
 dev_dependencies:
@@ -90,4 +106,7 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+<<<<<<< HEAD
 
+=======
+>>>>>>> a4a73171cef062a0fbdae92af0c14336bac4ad78

@@ -90,12 +90,21 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
+<<<<<<< HEAD
             VALUE "FileDescription", "coworking_app" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "coworking_app" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
             VALUE "OriginalFilename", "coworking_app.exe" "\0"
             VALUE "ProductName", "coworking_app" "\0"
+=======
+            VALUE "FileDescription", "coworkhub" "\0"
+            VALUE "FileVersion", VERSION_AS_STRING "\0"
+            VALUE "InternalName", "coworkhub" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
+            VALUE "OriginalFilename", "coworkhub.exe" "\0"
+            VALUE "ProductName", "coworkhub" "\0"
+>>>>>>> a4a73171cef062a0fbdae92af0c14336bac4ad78
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

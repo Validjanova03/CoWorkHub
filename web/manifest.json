@@ -1,6 +1,11 @@
 {
+<<<<<<< HEAD
     "name": "coworking_app",
     "short_name": "coworking_app",
+=======
+    "name": "coworkhub",
+    "short_name": "coworkhub",
+>>>>>>> a4a73171cef062a0fbdae92af0c14336bac4ad78
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

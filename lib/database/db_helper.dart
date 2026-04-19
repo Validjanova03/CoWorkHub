@@ -14,7 +14,7 @@ class DBHelper {
     String path = join(await getDatabasesPath(), 'app.db');
     return await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _onCreate,
     );
   }
@@ -96,16 +96,18 @@ class DBHelper {
     ''');
 
     await db.execute('''
-      CREATE TABLE invoice (
-        invoice_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
-        issue_date TEXT,
-        due_date TEXT,
-        discount REAL,
-        total REAL,
-        status TEXT,
-        FOREIGN KEY (user_id) REFERENCES users(user_id)
-      )
+CREATE TABLE invoice (
+  invoice_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER,
+  booking_id INTEGER,
+  issue_date TEXT,
+  due_date TEXT,
+  discount REAL,
+  total REAL,
+  status TEXT,
+  FOREIGN KEY (user_id) REFERENCES users(user_id),
+  FOREIGN KEY (booking_id) REFERENCES booking(booking_id)
+)
     ''');
 
     await db.execute('''
@@ -399,5 +401,84 @@ class DBHelper {
   Future<int> insertFeedback(Map<String, dynamic> feedback) async {
     final dbClient = await db;
     return await dbClient.insert('feedback', feedback);
+  }
+
+  //bahar work
+// In DBHelper class
+
+  Future<Map<String, dynamic>?> getBookingById(int bookingId) async {
+    final dbClient = await db;
+    List<Map<String, dynamic>> result = await dbClient.query(
+      'booking',
+      where: 'booking_id = ?',
+      whereArgs: [bookingId],
+    );
+    return result.isNotEmpty ? result.first : null;
+  }
+
+  Future<Map<String, dynamic>?> getResourceById(int resourceId) async {
+    final dbClient = await db;
+    List<Map<String, dynamic>> result = await dbClient.query(
+      'resources',
+      where: 'resource_id = ?',
+      whereArgs: [resourceId],
+    );
+    return result.isNotEmpty ? result.first : null;
+  }
+
+  Future<Map<String, dynamic>?> getInvoiceByBookingId(int bookingId) async {
+    final dbClient = await db;
+    List<Map<String, dynamic>> result = await dbClient.query(
+      'invoice',
+      where: 'booking_id = ?',
+      whereArgs: [bookingId],
+    );
+    return result.isNotEmpty ? result.first : null;
+  }
+
+  Future<Map<String, dynamic>?> getInvoiceById(int invoiceId) async {
+    final dbClient = await db;
+    List<Map<String, dynamic>> result = await dbClient.query(
+      'invoice',
+      where: 'invoice_id = ?',
+      whereArgs: [invoiceId],
+    );
+    return result.isNotEmpty ? result.first : null;
+  }
+
+  Future<int> updateInvoiceStatus(int invoiceId, String status) async {
+    final dbClient = await db;
+    return await dbClient.update(
+      'invoice',
+      {'status': status},
+      where: 'invoice_id = ?',
+      whereArgs: [invoiceId],
+    );
+  }
+
+  Future<int> updateBookingStatus(int bookingId, String status) async {
+    final dbClient = await db;
+    return await dbClient.update(
+      'booking',
+      {'booking_status': status},
+      where: 'booking_id = ?',
+      whereArgs: [bookingId],
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getPaymentsWithDetailsByUser(int userId) async {
+    final dbClient = await db;
+    return await dbClient.rawQuery('''
+    SELECT p.*, i.total, i.booking_id, i.issue_date
+    FROM payment p
+    JOIN invoice i ON p.invoice_id = i.invoice_id
+    WHERE i.user_id = ?
+    ORDER BY p.payment_date DESC
+  ''', [userId]);
+  }
+
+  Future<List<Map<String, dynamic>>> getAllResources() async {
+    final dbClient = await db;
+    return await dbClient.query('resources');
   }
 }

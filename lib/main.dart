@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'booking_membership_logic/screens/welcome_screen.dart';
 import 'database/db_helper.dart';
-import 'booking_membership_logic/screens/register_screen.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,7 +21,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Workspace Booking App',
-      home: RegisterScreen(), // keep teammate UI
+      home: WelcomeScreen(),
     );
   }
 }

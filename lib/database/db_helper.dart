@@ -9,7 +9,19 @@ class DBHelper {
     _db = await initDB();
     return _db!;
   }
+  Future<Map<String, dynamic>?> loginUser(String email, String password) async {
+    final dbClient = await db;
+    final result = await dbClient.query(
+      'users',
+      where: 'email = ? AND password = ?',
+      whereArgs: [email, password],
+    );
 
+    if (result.isNotEmpty) {
+      return result.first;
+    }
+    return null;
+  }
   Future<Database> initDB() async {
     String path = join(await getDatabasesPath(), 'app.db');
     return await openDatabase(

@@ -16,12 +16,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController lastNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
   Future<void> registerUser() async {
     String firstName = firstNameController.text.trim();
     String lastName = lastNameController.text.trim();
     String email = emailController.text.trim();
     String phone = phoneController.text.trim();
+    String password = passwordController.text.trim();
 
     if (firstName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -57,7 +59,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
       return;
     }
-
+    if (password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Password is required')),
+      );
+      return;
+    }
     if (phone.length < 8) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Phone number is too short')),
@@ -80,6 +87,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       'last_name': lastName,
       'email': email,
       'phone': phone,
+      'password': password,
     });
 
     if (!mounted) return;
@@ -102,6 +110,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     lastNameController.dispose();
     emailController.dispose();
     phoneController.dispose();
+    passwordController.dispose();
     super.dispose();
   }
 
@@ -134,6 +143,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
             TextField(
               controller: phoneController,
               decoration: InputDecoration(labelText: 'Phone'),
+            ),SizedBox(height: 10),
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              decoration: InputDecoration(labelText: 'Password'),
             ),
             SizedBox(height: 20),
             ElevatedButton(

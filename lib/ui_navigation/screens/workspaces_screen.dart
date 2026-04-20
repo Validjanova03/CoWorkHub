@@ -17,7 +17,7 @@ class _WorkspacesScreenState extends State<WorkspacesScreen> {
     'Conference Hall'
   ];
 
-  final List<Map<String, dynamic>> _workspaces = [
+  final List<Map<String, dynamic>> _workspaces = [ // a mock database to check if the screen is working
     {
       'name': 'Hot Desk A1',
       'type': 'Hot Desk',

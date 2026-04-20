@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'booking_membership_logic/screens/welcome_screen.dart';
+import 'ui_navigation/screens/login_screen.dart';
 import 'database/db_helper.dart';
 
 
@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Workspace Booking App',
-      home: WelcomeScreen(),
+      home: LoginScreen(),
     );
   }
 }

@@ -1,403 +1,450 @@
 import 'package:flutter/material.dart';
+import 'package:coworkhub/database/db_helper.dart';
+import 'package:coworkhub/ui_navigation/screens/workspace_details_screen.dart';
+import 'package:coworkhub/payment_feedback_logic/widgets/rating_stars.dart';
 
 class WorkspacesScreen extends StatefulWidget {
-  const WorkspacesScreen({super.key});
+  final int userId;
+  final String? initialFilter;
+
+  const WorkspacesScreen({
+    super.key,
+    required this.userId,
+    this.initialFilter,
+  });
 
   @override
   State<WorkspacesScreen> createState() => _WorkspacesScreenState();
 }
 
 class _WorkspacesScreenState extends State<WorkspacesScreen> {
-  String _selectedFilter = 'All';
-  final List<String> _filters = [
-    'All',
-    'Hot Desk',
-    'Dedicated Desk',
-    'Meeting Room',
-    'Conference Hall'
-  ];
+  final DBHelper dbHelper = DBHelper();
 
-  final List<Map<String, dynamic>> _workspaces = [ // a mock database to check if the screen is working
-    {
-      'name': 'Hot Desk A1',
-      'type': 'Hot Desk',
-      'capacity': 1,
-      'price': 45,
-      'rating': 4.9,
-      'available': true,
-      'floor': 'Floor 3',
-      'amenities': ['WiFi', 'Projector', 'AC', 'Coffee'],
-      'color': const Color(0xFF4F46E5),
-      'icon': Icons.business_center_rounded,
-    },
-    {
-      'name': 'Creative Studio', // (you can keep this if not in DB)
-      'type': 'Dedicated Desk',
-      'capacity': 4,
-      'price': 25,
-      'rating': 4.7,
-      'available': true,
-      'floor': 'Floor 1',
-      'amenities': ['WiFi', 'Whiteboard', 'AC'],
-      'color': const Color(0xFF10B981),
-      'icon': Icons.brush_rounded,
-    },
-    {
-      'name': 'Meeting Room M1',
-      'type': 'Meeting Room',
-      'capacity': 16,
-      'price': 80,
-      'rating': 4.8,
-      'available': false,
-      'floor': 'Floor 5',
-      'amenities': ['WiFi', 'TV', 'Projector', 'Coffee', 'AC'],
-      'color': const Color(0xFF8B5CF6),
-      'icon': Icons.groups_rounded,
-    },
-    {
-      'name': 'Hot Desk A2',
-      'type': 'Hot Desk',
-      'capacity': 30,
-      'price': 15,
-      'rating': 4.5,
-      'available': true,
-      'floor': 'Floor 2',
-      'amenities': ['WiFi', 'Coffee', 'Locker'],
-      'color': const Color(0xFF06B6D4),
-      'icon': Icons.laptop_mac_rounded,
-    },
-    {
-      'name': 'Dedicated Desk D1',
-      'type': 'Dedicated Desk',
-      'capacity': 2,
-      'price': 18,
-      'rating': 4.6,
-      'available': true,
-      'floor': 'Floor 2',
-      'amenities': ['WiFi', 'AC'],
-      'color': const Color(0xFFF59E0B),
-      'icon': Icons.headphones_rounded,
-    },
-    {
-      'name': 'Conference Room C1',
-      'type': 'Conference Hall',
-      'capacity': 50,
-      'price': 150,
-      'rating': 4.9,
-      'available': true,
-      'floor': 'Floor 6',
-      'amenities': ['WiFi', 'Stage', 'Projector', 'Sound', 'AC'],
-      'color': const Color(0xFFEF4444),
-      'icon': Icons.speaker_group_rounded,
-    },
-  ];
+  List<Map<String, dynamic>> workspaces = [];
+  List<Map<String, dynamic>> allAmenities = [];
+  Map<int, double> workspaceRatings = {};
+  String selectedFilter = "All";
+  bool _isLoading = true;
 
-  List<Map<String, dynamic>> get _filteredWorkspaces {
-    if (_selectedFilter == 'All') return _workspaces;
-    return _workspaces
-        .where((ws) => ws['type'] == _selectedFilter)
-        .toList();
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+
+    final workspaceData = await dbHelper.getWorkspaces();
+    final amenityData = await dbHelper.getAmenities();
+
+    final db = await dbHelper.db;
+    Map<int, double> ratings = {};
+
+    for (var workspace in workspaceData) {
+      int resourceId = workspace['resource_id'];
+      final ratingResult = await db.rawQuery(
+        'SELECT AVG(rating) as avgRating FROM feedback WHERE resource_id = ?',
+        [resourceId],
+      );
+
+      if (ratingResult.isNotEmpty && ratingResult.first['avgRating'] != null) {
+        ratings[resourceId] = (ratingResult.first['avgRating'] as num).toDouble();
+      } else {
+        ratings[resourceId] = 0.0;
+      }
+    }
+
+    setState(() {
+      workspaces = workspaceData;
+      allAmenities = amenityData;
+      workspaceRatings = ratings;
+      _isLoading = false;
+    });
+
+    if (widget.initialFilter != null && mounted) {
+      setState(() {
+        selectedFilter = widget.initialFilter!;
+      });
+    }
+  }
+
+  // NEW: Location method that matches HomeScreen logic but covers ALL workspaces
+  String _getWorkspaceLocation(String name) {
+    Map<String, String> locations = {
+      // Hot Desks (5 total)
+      'Hot Desk 1': 'Levent, Istanbul',
+      'Hot Desk 2': 'Moda, Kadıköy, Istanbul',
+      'Hot Desk 3': 'Kadiköy, Istanbul',
+      'Hot Desk 4': 'Ataşehir, Istanbul',
+      'Hot Desk 5': 'Maslak, Istanbul',
+
+      // Dedicated Rooms (4 total)
+      'Dedicated Room 1': 'Feneryolu, Kadıköy, Istanbul',
+      'Dedicated Room 2': 'Beşiktaş, Istanbul',
+      'Dedicated Room 3': 'Levent, Istanbul',
+      'Dedicated Room 4': 'Bostancı, Istanbul',
+
+      // Meeting Rooms (3 total)
+      'Meeting Room 1': 'Şişli, Istanbul',
+      'Meeting Room 2': 'Beşiktaş, Istanbul',
+      'Meeting Room 3': 'Acıbadem, Istanbul',
+
+      // Conference Halls (2 total)
+      'Conference Hall 1': 'Şişli, Istanbul',
+      'Conference Hall 2': 'Maslak, Istanbul',
+    };
+    return locations[name] ?? 'Istanbul, Turkey';
+  }
+
+  // NEW: Image method that matches HomeScreen exactly
+  String _getImageForWorkspace(String name) {
+    if (name.contains('Hot Desk')) {
+      if (name == 'Hot Desk 1') return 'assets/images/hot_desk.jpg';
+      if (name == 'Hot Desk 2') return 'assets/images/hot_desk2.png';
+      if (name == 'Hot Desk 3') return 'assets/images/hot_desk_3.png';
+      if (name == 'Hot Desk 4') return 'assets/images/hot_desk_4.png';
+      if (name == 'Hot Desk 5') return 'assets/images/hot_desk_5.png';
+      return 'assets/images/hot_desk.png';
+    }
+
+    if (name.contains('Dedicated Room')) {
+      if (name == 'Dedicated Room 1') return 'assets/images/dedicated_desk.jpg';
+      if (name == 'Dedicated Room 2') return 'assets/images/dedicated_desk2.png';
+      if (name == 'Dedicated Room 3') return 'assets/images/dedicated_room_3.png';
+      if (name == 'Dedicated Room 4') return 'assets/images/dedicated_desk_4.png';
+      return 'assets/images/dedicated_desk.png';
+    }
+
+    if (name.contains('Meeting Room')) {
+      if (name == 'Meeting Room 1') return 'assets/images/meeting_room.jpg';
+      if (name == 'Meeting Room 2') return 'assets/images/meeting_room2.png';
+      if (name == 'Meeting Room 3') return 'assets/images/meeting_room_3.png';
+      return 'assets/images/meeting_room.png';
+    }
+
+    if (name.contains('Conference Hall')) {
+      if (name == 'Conference Hall 1') return 'assets/images/conference_hall.jpg';
+      if (name == 'Conference Hall 2') return 'assets/images/conference_hall2.png';
+      return 'assets/images/conference_hall.png';
+    }
+
+    return 'assets/images/workspace.png';
+  }
+
+  List<Map<String, dynamic>> get filteredWorkspaces {
+    if (selectedFilter == "Available Now") {
+      return workspaces.where((w) => w['availability_status'] == 'Available').toList();
+    } else if (selectedFilter == "Hot Desk") {
+      return workspaces.where((w) => w['space_type'] == 'Hot Desk').toList();
+    } else if (selectedFilter == "Meeting") {
+      return workspaces.where((w) => w['space_type'] == 'Meeting Room').toList();
+    } else if (selectedFilter == "Conference") {
+      return workspaces.where((w) => w['space_type'] == 'Conference Hall').toList();
+    } else if (selectedFilter == "Private") {
+      // FIXED: Changed from 'Dedicated Desk' to 'Dedicated Room'
+      return workspaces.where((w) => w['space_type'] == 'Dedicated Room').toList();
+    }
+    return workspaces;
+  }
+
+  List<Map<String, dynamic>> get _availableAmenities {
+    return allAmenities;
+  }
+
+  IconData _getAmenityIcon(String amenityType) {
+    switch (amenityType) {
+      case 'Printer':
+        return Icons.print;
+      case 'Projector':
+        return Icons.videocam;
+      case 'Kitchen':
+        return Icons.coffee;
+      case 'Locker':
+        return Icons.lock;
+      default:
+        return Icons.star;
+    }
+  }
+
+  String _getAmenityName(String amenityType) {
+    switch (amenityType) {
+      case 'Printer':
+        return 'Printer';
+      case 'Projector':
+        return 'Projector';
+      case 'Kitchen':
+        return 'Coffee';
+      case 'Locker':
+        return 'Locker';
+      default:
+        return amenityType;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final filters = ["All", "Available Now", "Hot Desk", "Meeting", "Conference", "Private"];
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D1A), // ✅ dark background
+      backgroundColor: const Color(0xFFFAF7F4),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0D0D1A),
         title: const Text(
-          'Workspaces',
-          style: TextStyle(color: Color(0xFFE0E0FF)), // text color
+          "Workspaces",
+          style: TextStyle(color: Colors.white),
         ),
-        iconTheme: const IconThemeData(color: Color(0xFFE0E0FF)),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.tune_rounded),
-            onPressed: () {},
-          ),
-        ],
+        centerTitle: true,
+        backgroundColor: const Color(0xFF5D4037),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Search Bar
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search workspaces...',
-                filled: true,
-                fillColor: const Color(0xFF1A1A35),
-
-                hintStyle: const TextStyle(color: Color(0xFF555577), fontSize: 14),
-
-                prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF555577)),
-                suffixIcon: const Icon(Icons.mic_rounded, color: Color(0xFF555577)),
-                contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 12),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Filter Chips
-          SizedBox(
-            height: 40,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: _filters.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
-              itemBuilder: (context, index) {
-                final filter = _filters[index];
-                final isSelected = _selectedFilter == filter;
-                return GestureDetector(
-                  onTap: () =>
-                      setState(() => _selectedFilter = filter),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 18, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? const Color(0xFF4F46E5)
-                          : const Color(0xFF1A1A35),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isSelected
-                            ? const Color(0xFF4F46E5)
-                            : const Color(0xFF2E2E55),
-                      ),
-                    ),
-                    child: Text(
-                      filter,
-                      style: TextStyle(
-                        color: isSelected ? Colors.white : const Color(0xFFE0E0FF),
-                        fontWeight: isSelected
-                            ? FontWeight.w600
-                            : FontWeight.w400,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              '${_filteredWorkspaces.length} spaces found',
-              style:
-              const TextStyle(fontSize: 13, color: Color(0xFF555577)),
-            ),
-          ),
-          const SizedBox(height: 8),
-
-          // Workspaces List
-          Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-              itemCount: _filteredWorkspaces.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final ws = _filteredWorkspaces[index];
-                return _WorkspaceCard(workspace: ws);
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _WorkspaceCard extends StatelessWidget {
-  final Map<String, dynamic> workspace;
-
-  const _WorkspaceCard({required this.workspace});
-
-  @override
-  Widget build(BuildContext context) {
-    final bool available = workspace['available'] as bool;
-    final Color color = workspace['color'] as Color;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1A35),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      body: RefreshIndicator(
+        onRefresh: _loadData,
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator(color: Color(0xFF6D4C41)))
+            : Column(
           children: [
-            Row(
-              children: [
-                Container(
-                  width: 52,
-                  height: 52,
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Icon(workspace['icon'] as IconData,
-                      color: color, size: 26),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        workspace['name'],
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 15,
-                            color: const Color(0xFFE0E0FF)),
-                      ),
-                      const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          Icon(Icons.location_on_outlined,
-                              size: 12, color: const Color(0xFF555577)),
-                          const SizedBox(width: 2),
-                          Text(
-                            workspace['floor'],
-                            style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade500),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 1),
-                            decoration: BoxDecoration(
-                              color: color.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              workspace['type'],
-                              style: TextStyle(
-                                  fontSize: 10,
-                                  color: color,
-                                  fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      '\$${workspace['price']}/hr',
-                      style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 15,
-                          color: color),
-                    ),
-                    const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
+            const SizedBox(height: 12),
+            // Filter Chips
+            SizedBox(
+              height: 45,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: filters.length,
+                itemBuilder: (context, index) {
+                  final selected = selectedFilter == filters[index];
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        selectedFilter = filters[index];
+                      });
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: available
-                            ? Colors.green.withOpacity(0.1)
-                            : Colors.red.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6),
+                        color: selected ? const Color(0xFF6D4C41) : Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: selected ? const Color(0xFF6D4C41) : const Color(0xFFD7CCC8),
+                        ),
                       ),
                       child: Text(
-                        available ? 'Available' : 'Booked',
+                        filters[index],
                         style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: available
-                              ? Colors.green.shade700
-                              : Colors.red.shade600,
+                          color: selected ? Colors.white : const Color(0xFF3E2723),
+                          fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ],
+                  );
+                },
+              ),
             ),
+
             const SizedBox(height: 12),
 
-            // Amenities
-            Wrap(
-              spacing: 6,
-              runSpacing: 4,
-              children: (workspace['amenities'] as List<String>)
-                  .map((amenity) => Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0D0D1A),
-                  border: Border.all(color: const Color(0xFF2E2E55)),
-                ),
-                child: Text(
-                  amenity,
-                  style: const TextStyle(
-                      fontSize: 11, color: const Color(0xFF555577)),
-                ),
-              ))
-                  .toList(),
-            ),
-            const SizedBox(height: 14),
-
-            // Footer Row
-            Row(
-              children: [
-                Icon(Icons.group_outlined,
-                    size: 14, color: const Color(0xFF555577)),
-                const SizedBox(width: 4),
-                Text(
-                  'Up to ${workspace['capacity']} people',
-                  style: TextStyle(
-                      fontSize: 12, color: const Color(0xFF555577)),
-                ),
-                const SizedBox(width: 12),
-                Icon(Icons.star_rounded,
-                    size: 14, color: Colors.amber.shade600),
-                const SizedBox(width: 2),
-                Text(
-                  '${workspace['rating']}',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey.shade700),
-                ),
-                const Spacer(),
-                SizedBox(
-                  height: 36,
-                  child: ElevatedButton(
-                    onPressed: available
-                        ? () => Navigator.pushNamed(context, '/details')
-                        : null,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      textStyle: const TextStyle(fontSize: 13),
-                    ),
-                    child: const Text('View Details'),
+            // Result count
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "${filteredWorkspaces.length} workspaces found",
+                    style: const TextStyle(color: Color(0xFF8D6E63), fontSize: 12),
                   ),
-                ),
-              ],
+                  const Text(
+                    "Sort by: Recommended",
+                    style: TextStyle(color: Color(0xFF8D6E63), fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Workspaces List
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: filteredWorkspaces.length,
+                itemBuilder: (context, index) {
+                  final w = filteredWorkspaces[index];
+                  final workspaceRating = workspaceRatings[w['resource_id']] ?? 0.0;
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFD7CCC8)),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Image
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.asset(
+                            _getImageForWorkspace(w['name']),
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                width: 100,
+                                height: 100,
+                                color: const Color(0xFFE8D5D0),
+                                child: const Icon(Icons.meeting_room_rounded, size: 40, color: Color(0xFF8D6E63)),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+
+                        // Details
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                w['name'],
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 15,
+                                  color: Color(0xFF3E2723),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              // Location - NOW USING THE SAME METHOD AS HOMESCREEN
+                              Row(
+                                children: [
+                                  const Icon(Icons.location_on_outlined, size: 12, color: Color(0xFF8D6E63)),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      _getWorkspaceLocation(w['name']),
+                                      style: const TextStyle(fontSize: 11, color: Color(0xFF8D6E63)),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              // Rating
+                              Row(
+                                children: [
+                                  RatingStars(rating: workspaceRating, size: 14),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    workspaceRating.toStringAsFixed(1),
+                                    style: const TextStyle(fontSize: 12, color: Color(0xFF8D6E63)),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              // Amenities
+                              Wrap(
+                                spacing: 6,
+                                runSpacing: 4,
+                                children: _availableAmenities.take(3).map((amenity) {
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFAF7F4),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: const Color(0xFFD7CCC8)),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          _getAmenityIcon(amenity['amenity_type']),
+                                          size: 10,
+                                          color: const Color(0xFF8D6E63),
+                                        ),
+                                        const SizedBox(width: 3),
+                                        Text(
+                                          _getAmenityName(amenity['amenity_type']),
+                                          style: const TextStyle(fontSize: 9, color: Color(0xFF6D4C41)),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Price & Button
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF6D4C41).withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                "\$${w['rate']}/${w['unit_type']}",
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF6D4C41),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            // Availability badge
+                            if (w['availability_status'] == 'Available')
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  "Available",
+                                  style:  TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.green.shade700,// Green
+                                  ),
+                                ),
+                              ),
+                            const SizedBox(height: 8),
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => WorkspaceDetailsScreen(
+                                      userId: widget.userId,
+                                      workspace: w,
+                                    ),
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF6D4C41),
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: const Text(
+                                "Book Now",
+                                style: TextStyle(fontSize: 11, color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:coworkhub/database/db_helper.dart';
 import 'home_screen.dart';
-
+import 'register_screen.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -65,6 +65,16 @@ class _LoginScreenState extends State<LoginScreen> {
             ElevatedButton(
               onPressed: login,
               child: Text("Login"),
+            ),
+            SizedBox(height: 15),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => RegisterScreen()),
+                );
+              },
+              child: Text("Don't have an account? Register"),
             ),
           ],
         ),

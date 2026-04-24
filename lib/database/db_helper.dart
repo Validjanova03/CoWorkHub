@@ -30,7 +30,6 @@ class DBHelper {
       onCreate: _onCreate,
     );
   }
-
   Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE users (
@@ -475,4 +474,30 @@ CREATE TABLE invoice (
     final dbClient = await db;
     return await dbClient.query('resources');
   }
+  Future<int> cancelMembership(int membershipId) async {
+    final dbClient = await db;
+    return await dbClient.update(
+      'membership',
+      {'status': 'Cancelled'},
+      where: 'membership_id = ?',
+      whereArgs: [membershipId],
+    );
+  }
+ // Maftuna's Part
+  Future<List<Map<String, dynamic>>> checkConflictingBookings(
+      int resourceId,
+      String startTime,
+      String endTime,
+      ) async {
+    final dbClient = await db;
+
+    return await dbClient.query(
+      'booking',
+      where: '''
+      resource_id = ? AND booking_status = ? AND
+      NOT (end_time <= ? OR start_time >= ?)
+    ''',
+      whereArgs: [resourceId, 'Active', startTime, endTime],
+    );
+  } // Until here
 }

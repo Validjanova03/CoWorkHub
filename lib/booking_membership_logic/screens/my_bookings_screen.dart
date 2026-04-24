@@ -29,9 +29,13 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
   Future<void> cancelBooking(int bookingId) async {
     await dbHelper.cancelBooking(bookingId);
+
+    if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Booking cancelled')),
     );
+
     loadBookings();
   }
 

@@ -72,7 +72,21 @@ class _BookingScreenState extends State<BookingScreen> {
       );
       return;
     }
+    final conflicts = await dbHelper.checkConflictingBookings(
+      widget.resourceId,
+      startDateTime.toString(),
+      endDateTime.toString(),
+    );
 
+    if (conflicts.isNotEmpty) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('This workspace is already booked for that time')),
+      );
+
+      return;
+    }
     await dbHelper.insertBooking({
       'user_id': widget.userId,
       'resource_id': widget.resourceId,

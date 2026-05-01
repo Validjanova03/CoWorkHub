@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'login_screen.dart';
-import 'register_screen.dart';
+import 'package:coworkhub/ui_navigation/screens/login_screen.dart';
+import 'package:coworkhub/ui_navigation/screens/register_screen.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -14,17 +14,17 @@ class WelcomeScreen extends StatelessWidget {
           // 🖼 BACKGROUND IMAGE
           SizedBox.expand(
             child: Image.asset(
-              'assets/workspace.jpg',
+              'assets/images/workspace.jpg',
               fit: BoxFit.cover,
             ),
           ),
 
-          // 🌑 DARK OVERLAY (FIXED)
+
           Container(
             color: Colors.black.withOpacity(0.55),
           ),
 
-          // 📄 CONTENT
+
           Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
@@ -33,7 +33,7 @@ class WelcomeScreen extends StatelessWidget {
               children: [
 
                 const Text(
-                  "Work Better Together",
+                  "CoworkHub",
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 30,
@@ -53,7 +53,7 @@ class WelcomeScreen extends StatelessWidget {
 
                 const SizedBox(height: 30),
 
-                // 🔑 SIGN IN BUTTON (FIXED)
+                // SIGN IN BUTTON (FIXED)
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:coworkhub/database/db_helper.dart';
+import 'package:coworkhub/booking_membership_logic/services/auth_service.dart';
 import 'package:coworkhub/ui_navigation/screens/home_screen.dart';
 import 'package:coworkhub/ui_navigation/screens/register_screen.dart';
 
@@ -11,31 +11,20 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final DBHelper dbHelper = DBHelper();
-
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-
+  final AuthService authService = AuthService();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
   bool isLoading = false;
-  bool _obscurePassword = true;  // Add this for password visibility
 
   Future<void> login() async {
-    String email = emailController.text.trim();
-    String password = passwordController.text.trim();
-
-    if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Fill all fields')),
-      );
-      return;
-    }
-
     setState(() => isLoading = true);
 
-    final user = await dbHelper.loginUser(email, password);
+    final user = await authService.loginUser(
+      email: emailController.text.trim(),
+      password: passwordController.text.trim(),
+    );
 
     if (!mounted) return;
-
     setState(() => isLoading = false);
 
     if (user != null) {
@@ -55,6 +44,9 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+
+  bool _obscurePassword = true;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -63,7 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
           // Background image
           SizedBox.expand(
             child: Image.asset(
-              'assets/workspace.jpg',
+              'assets/images/workspace.jpg',
               fit: BoxFit.cover,
             ),
           ),
@@ -78,7 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
@@ -86,36 +78,42 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Title
                     const Text(
                       "Sign In",
                       style: TextStyle(
-                        fontSize: 22,
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: Colors.brown,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 24),
 
-                    // Email Field
+                    // Email field
                     TextField(
                       controller: emailController,
+                      keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
                         labelText: "Email",
-                        prefixIcon: const Icon(Icons.email),
+                        prefixIcon: const Icon(Icons.email, color: Colors.brown),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.brown),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 15),
+                    const SizedBox(height: 16),
 
-                    // Password Field with Eye Icon
+                    // Password field
                     TextField(
                       controller: passwordController,
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         labelText: "Password",
-                        prefixIcon: const Icon(Icons.lock),
+                        prefixIcon: const Icon(Icons.lock, color: Colors.brown),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
@@ -132,11 +130,15 @@ class _LoginScreenState extends State<LoginScreen> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.brown),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 24),
 
-                    // Login Button
+                    // Login button
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -144,7 +146,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.brown,
                           foregroundColor: Colors.white,
-                          elevation: 5,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -153,18 +154,24 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: isLoading
                             ? const CircularProgressIndicator(color: Colors.white)
                             : const Text(
-                          "Login",
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          "Sign In",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 15),
+                    const SizedBox(height: 16),
 
-                    // Register Link
+                    // Register link
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text("Don't have an account? "),
+                        const Text(
+                          "Don't have an account? ",
+                          style: TextStyle(color: Colors.grey),
+                        ),
                         GestureDetector(
                           onTap: () {
                             Navigator.push(

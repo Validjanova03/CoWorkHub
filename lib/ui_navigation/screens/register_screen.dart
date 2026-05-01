@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:coworkhub/database/db_helper.dart';
+import 'package:coworkhub/booking_membership_logic/services/auth_service.dart';
 import 'package:coworkhub/ui_navigation/screens/home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -10,7 +10,7 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final DBHelper dbHelper = DBHelper();
+  final AuthService authService = AuthService();
 
   final TextEditingController firstNameController = TextEditingController();
   final TextEditingController lastNameController = TextEditingController();
@@ -21,95 +21,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool isLoading = false;
   bool _obscurePassword = true;
 
+
   Future<void> registerUser() async {
-    String firstName = firstNameController.text.trim();
-    String lastName = lastNameController.text.trim();
-    String email = emailController.text.trim();
-    String phone = phoneController.text.trim();
-    String password = passwordController.text.trim();
-
-    // Validation checks
-    if (firstName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('First name is required')),
-      );
-      return;
-    }
-
-    if (lastName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Last name is required')),
-      );
-      return;
-    }
-
-    if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Email is required')),
-      );
-      return;
-    }
-
-    // Email format validation
-    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid email address')),
-      );
-      return;
-    }
-
-    if (phone.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Phone number is required')),
-      );
-      return;
-    }
-
-    if (password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password is required')),
-      );
-      return;
-    }
-
-    // Phone length validation
-    if (phone.length < 8) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Phone number is too short')),
-      );
-      return;
-    }
-
     setState(() => isLoading = true);
 
-    // Check if email already exists
-    List<Map<String, dynamic>> users = await dbHelper.getUsers();
-    bool emailExists = users.any((user) => user['email'] == email);
+    final error = await authService.validateRegister(
+      firstName: firstNameController.text.trim(),
+      lastName: lastNameController.text.trim(),
+      email: emailController.text.trim(),
+      phone: phoneController.text.trim(),
+      password: passwordController.text.trim(),
+    );
 
-    if (emailExists) {
+    if (error != null) {
       if (!mounted) return;
       setState(() => isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('This email is already registered')),
+        SnackBar(content: Text(error)),
       );
       return;
     }
 
-    // Insert user
-    int userId = await dbHelper.insertUser({
-      'first_name': firstName,
-      'last_name': lastName,
-      'email': email,
-      'phone': phone,
-      'password': password,
-    });
+    final userId = await authService.registerUser(
+      firstName: firstNameController.text.trim(),
+      lastName: lastNameController.text.trim(),
+      email: emailController.text.trim(),
+      phone: phoneController.text.trim(),
+      password: passwordController.text.trim(),
+    );
 
     if (!mounted) return;
-
     setState(() => isLoading = false);
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('User registered successfully')),
+      const SnackBar(content: Text('Registered successfully! 🎉')),
     );
 
     Navigator.pushReplacement(
@@ -117,12 +62,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       MaterialPageRoute(
         builder: (context) => HomeScreen(
           userId: userId,
-          userName: "$firstName $lastName",
+          userName: "${firstNameController.text.trim()} ${lastNameController.text.trim()}",
         ),
       ),
     );
   }
-
   Widget field(String label, IconData icon, TextEditingController controller,
       {bool obscure = false}) {
     return Padding(
@@ -172,7 +116,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           // Background image
           SizedBox.expand(
             child: Image.asset(
-              'assets/workspace.jpg',
+              'assets/images/workspace.jpg',
               fit: BoxFit.cover,
             ),
           ),

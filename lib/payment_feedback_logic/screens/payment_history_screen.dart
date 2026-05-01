@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../database/db_helper.dart';
+import '../services/payment_history_service.dart';
 
 class PaymentHistoryScreen extends StatefulWidget {
   final int userId;
 
   const PaymentHistoryScreen({
-    super.key, //use super.key instead of {Key? key}
+    super.key,
     required this.userId,
   });
 
@@ -14,13 +14,13 @@ class PaymentHistoryScreen extends StatefulWidget {
 }
 
 class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
-  final DBHelper _db = DBHelper();
+  final PaymentHistoryService _paymentHistoryService = PaymentHistoryService();
   late Future<List<Map<String, dynamic>>> _paymentsFuture;
 
   @override
   void initState() {
     super.initState();
-    _paymentsFuture = _db.getPaymentsWithDetailsByUser(widget.userId);
+    _paymentsFuture = _paymentHistoryService.getPaymentsByUser(widget.userId);
   }
 
   @override
@@ -48,6 +48,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Text('Resource: ${p['resource_name'] ?? 'Unknown'}'),
                       Text('Method: ${p['method']}'),
                       Text('Date: ${DateTime.parse(p['payment_date']).toLocal()}'),
                       Text('Status: ${p['status']}'),

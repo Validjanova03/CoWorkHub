@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../database/db_helper.dart';
-import '../models/feedback.dart';
+import '../services/feedback_service.dart';
 
 class FeedbackScreen extends StatefulWidget {
   final int userId;
   final int? preSelectedResourceId;
 
   const FeedbackScreen({
-    super.key, //super.key instead of Key? key
+    super.key,
     required this.userId,
     this.preSelectedResourceId,
   });
@@ -18,6 +18,7 @@ class FeedbackScreen extends StatefulWidget {
 
 class _FeedbackScreenState extends State<FeedbackScreen> {
   final DBHelper _db = DBHelper();
+  final FeedbackService _feedbackService = FeedbackService();
   List<Map<String, dynamic>> _resources = [];
   int? _selectedResourceId;
   double _rating = 3;
@@ -33,7 +34,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   Future<void> _loadResources() async {
     setState(() => _loading = true);
     final allResources = await _db.getAllResources();
-    if (!mounted) return; //Check before using setState
+    if (!mounted) return;
     setState(() {
       _resources = allResources;
       if (widget.preSelectedResourceId != null &&
@@ -54,14 +55,14 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       );
       return;
     }
-    final feedback = FeedbackModel(
+
+    await _feedbackService.submitFeedback(
       userId: widget.userId,
       resourceId: _selectedResourceId!,
       rating: _rating,
       message: _commentController.text.trim(),
-      submittedAt: DateTime.now().toIso8601String(),
     );
-    await _db.insertFeedback(feedback.toMap());
+
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Thank you for your feedback!')),
@@ -81,7 +82,6 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
               const CircularProgressIndicator()
             else
               DropdownButtonFormField<int>(
-                //use initialValue instead of deprecated 'value'
                 initialValue: _selectedResourceId,
                 items: _resources.map<DropdownMenuItem<int>>((r) {
                   return DropdownMenuItem<int>(

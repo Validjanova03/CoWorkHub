@@ -31,7 +31,7 @@ class BookingService {
       return 'This workspace is already booked for that time';
     }
 
-    int bookingId = await dbHelper.insertBooking({
+    var bookingId = await dbHelper.insertBooking({
       'user_id': userId,
       'resource_id': resourceId,
       'start_time': startDateTime.toString(),

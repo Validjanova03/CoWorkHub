@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:coworkhub/services/workspace_service.dart';
-import 'package:coworkhub/database/db_helper.dart';
 import 'package:coworkhub/ui_navigation/screens/workspace_details_screen.dart';
 import 'package:coworkhub/payment_feedback_logic/widgets/rating_stars.dart';
-import 'package:coworkhub/ui_navigation/screens/workspace_helpers.dart';
+import 'package:coworkhub/services/workspace_service.dart';
+import 'package:coworkhub/payment_feedback_logic/services/feedback_service.dart';
+import 'package:coworkhub/ui_navigation/helper/workspace_helpers.dart';
 
 class WorkspacesScreen extends StatefulWidget {
   final int userId;
@@ -40,20 +40,11 @@ class _WorkspacesScreenState extends State<WorkspacesScreen> {
 
     final workspaceData = await workspaceService.getWorkspaces();
     final amenityData = await workspaceService.getAmenities();
-    final dbHelper = DBHelper();
-    final db = await dbHelper.db;
+    final FeedbackService feedbackService = FeedbackService();
     Map<int, double> ratings = {};
-
     for (var workspace in workspaceData) {
       int resourceId = workspace['resource_id'];
-      final ratingResult = await db.rawQuery(
-        'SELECT AVG(rating) as avgRating FROM feedback WHERE resource_id = ?',
-        [resourceId],
-      );
-      ratings[resourceId] = ratingResult.isNotEmpty &&
-          ratingResult.first['avgRating'] != null
-          ? (ratingResult.first['avgRating'] as num).toDouble()
-          : 0.0;
+      ratings[resourceId] = await feedbackService.getAverageRating(resourceId);
     }
 
     setState(() {

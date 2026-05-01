@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:coworkhub/booking_membership_logic/services/booking_service.dart';
-import 'package:coworkhub/ui_navigation/screens/workspace_helpers.dart';
+import 'package:coworkhub/ui_navigation/helper/workspace_helpers.dart';
 
 class MyBookingsScreen extends StatefulWidget {
   final int userId;
@@ -191,7 +191,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
   Widget _featuredBookingCard(Map<String, dynamic> booking) {
     final status = booking['booking_status'] ?? '';
-    final resourceName = booking['name'] ?? 'Workspace';
+    final resourceName = booking['resource_name'] ?? 'Workspace';
+
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -342,8 +343,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
   Widget _bookingCard(Map<String, dynamic> booking) {
     final status = booking['booking_status'] ?? '';
-    final resourceName = booking['name'] ?? 'Workspace';
-
+    final resourceName = booking['resource_name'] ?? 'Workspace';
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),

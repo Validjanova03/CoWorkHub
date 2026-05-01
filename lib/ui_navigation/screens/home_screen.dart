@@ -7,7 +7,8 @@ import 'package:coworkhub/ui_navigation/screens/my_bookings_screen.dart';
 import 'package:coworkhub/ui_navigation/screens/payment_history_screen.dart';
 import 'package:coworkhub/ui_navigation/screens/profile_screen.dart';
 import 'package:coworkhub/ui_navigation/screens/notification_screen.dart';
-import 'package:coworkhub/ui_navigation/screens/workspace_helpers.dart';
+import 'package:coworkhub/ui_navigation/helper/workspace_helpers.dart';
+import 'package:coworkhub/payment_feedback_logic/services/feedback_service.dart';
 
 class HomeScreen extends StatefulWidget {
   final int userId;
@@ -30,6 +31,8 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Map<String, dynamic>> _allWorkspaces = [];
   bool _isLoading = true;
   String _greeting = "";
+  Map<int, double> _workspaceRatings = {}; // ← add this
+  final FeedbackService feedbackService = FeedbackService();
 
   IconData _getGreetingIcon() {
     int hour = DateTime.now().hour;
@@ -57,12 +60,20 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadWorkspaces() async {
     setState(() => _isLoading = true);
     try {
-      final WorkspaceService workspaceService = WorkspaceService();
+      final workspaceService = WorkspaceService();
       _allWorkspaces = await workspaceService.getWorkspaces();
+
+      // Load ratings
+      for (var workspace in _allWorkspaces) {
+        int resourceId = workspace['resource_id'];
+        _workspaceRatings[resourceId] =
+        await feedbackService.getAverageRating(resourceId);
+      }
+
       setState(() => _isLoading = false);
     } catch (e) {
       setState(() => _isLoading = false);
-      debugPrint('Error loading workspaces: $e');
+      debugPrint('Error: $e');
     }
   }
 
@@ -470,10 +481,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ✅ One card method for both Featured and Popular
+  // One card method for both Featured and Popular
   Widget _workspaceCard(Map<String, dynamic> item) {
     String name = item['name'] ?? 'Workspace';
     double rate = (item['rate'] ?? 0).toDouble();
+    double rating = _workspaceRatings[item['resource_id']] ?? 0.0;
     bool isAvailable = item['availability_status'] == 'Available';
 
     return GestureDetector(

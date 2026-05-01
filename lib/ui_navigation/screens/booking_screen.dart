@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:coworkhub/booking_membership_logic/services/booking_service.dart';
-import 'package:coworkhub/payment_feedback_logic/screens/payment_screen.dart';
+import 'package:coworkhub/ui_navigation/screens/payment_screen.dart';
 import 'package:coworkhub/payment_feedback_logic/services/payment_service.dart';
 import 'package:coworkhub/ui_navigation/screens/home_screen.dart';
-import 'package:coworkhub/ui_navigation/screens/workspace_helpers.dart';
+import 'package:coworkhub/ui_navigation/helper/workspace_helpers.dart';
 
 class BookingScreen extends StatefulWidget {
   final int userId;
@@ -127,40 +127,29 @@ class _BookingScreenState extends State<BookingScreen> {
         return;
       }
 
-      final error = await bookingService.createBooking(
+      final result = await bookingService.createBooking(
         userId: widget.userId,
         resourceId: widget.resourceId,
         startDateTime: startDateTime,
         endDateTime: endDateTimeAdjusted,
       );
 
-      if (error != null) {
+      if (result is String) {
         if (!mounted) return;
-        _showError(error);
+        _showError(result);
         setState(() => _isLoading = false);
         return;
       }
 
-      // ⏳ bookingId needed from friend 1 — ask her to return it from createBooking
-      //final invoice = await paymentService.generateInvoiceForBooking(bookingId, widget.userId);
-      //_showPaymentDialog(bookingId);
+      final bookingId = result as int;
+      await paymentService.generateInvoiceForBooking(
+          bookingId, widget.userId);
 
       if (!mounted) return;
       setState(() => _isLoading = false);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Booking created successfully!')),
-      );
+      _showPaymentDialog(bookingId);
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => HomeScreen(
-            userId: widget.userId,
-            userName: widget.userName,
-          ),
-        ),
-      );
 
     } catch (e) {
       _showError("Error creating booking: $e");
@@ -171,6 +160,49 @@ class _BookingScreenState extends State<BookingScreen> {
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+  void _showPaymentDialog(int bookingId) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text("Booking Created!",
+            style: TextStyle(fontWeight: FontWeight.bold)),
+        content: const Text("Would you like to proceed to payment?"),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pushReplacement(context, MaterialPageRoute(
+                builder: (_) => HomeScreen(
+                  userId: widget.userId,
+                  userName: widget.userName,
+                ),
+              ));
+            },
+            child: const Text("Later",
+                style: TextStyle(color: Colors.black)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.push(context, MaterialPageRoute(
+                builder: (_) => PaymentScreen(
+                  bookingId: bookingId,
+                  userId: widget.userId,
+                  userName: widget.userName,
+                ),
+              ));
+            },
+            style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6D4C41)),
+            child: const Text("Proceed to Payment",
+                style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
     );
   }
 

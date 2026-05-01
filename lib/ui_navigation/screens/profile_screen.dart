@@ -1,23 +1,71 @@
-/*import 'package:flutter/material.dart';
-
-class ProfileScreen extends StatelessWidget {
-  final String displayName;
+import 'package:flutter/material.dart';
+import 'package:coworkhub/booking_membership_logic/services/booking_service.dart';
+import 'package:coworkhub/booking_membership_logic/services/membership_service.dart';
+import 'package:coworkhub/ui_navigation/screens/membership_screen.dart';
+import 'package:coworkhub/ui_navigation/screens/about_screen.dart';
+import 'package:coworkhub/ui_navigation/screens/help_support_screen.dart';
+import 'package:coworkhub/ui_navigation/screens/notification_screen.dart';
+class ProfileScreen extends StatefulWidget {
+  final int userId;
+  final String userName;
   final String initials;
 
   const ProfileScreen({
     super.key,
-    required this.displayName,
+    required this.userId,
+    required this.userName,
     required this.initials,
   });
 
   @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  final BookingService bookingService = BookingService();
+  final MembershipService membershipService = MembershipService();
+  int totalBookings = 0;
+  int activeBookings = 0;
+  String membershipStatus = 'No Plan';
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStats();
+  }
+
+  Future<void> _loadStats() async {
+    final bookings = await bookingService.getUserBookings(widget.userId);
+    final memberships = await membershipService.getUserMemberships(widget.userId);
+
+    final active = memberships.firstWhere(
+          (m) => m['status'] == 'Active',
+      orElse: () => {},
+    );
+
+    setState(() {
+      totalBookings = bookings.length;
+      activeBookings = bookings
+          .where((b) => b['booking_status'] == 'Active')
+          .length;
+      membershipStatus = active.isNotEmpty
+          ? active['status'] ?? 'No Plan'
+          : 'No Plan';
+      isLoading = false;
+    });
+  }
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFAF7F4),
-      body: SingleChildScrollView(
+      body: isLoading
+          ? const Center(
+        child: CircularProgressIndicator(color: Color(0xFF6D4C41)),
+      )
+          : SingleChildScrollView(
         child: Column(
           children: [
-
             // ── Header ──
             Container(
               width: double.infinity,
@@ -31,12 +79,11 @@ class ProfileScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  // Avatar
                   CircleAvatar(
                     radius: 45,
                     backgroundColor: const Color(0xFF8D6E63),
                     child: Text(
-                      initials,
+                      widget.initials,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 32,
@@ -46,7 +93,7 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    displayName,
+                    widget.userName,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 22,
@@ -54,24 +101,33 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'Pro Member',
-                    style: TextStyle(
+                  Text(
+                    membershipStatus == 'Active'
+                        ? 'Active Member'
+                        : 'No Active Plan',
+                    style: const TextStyle(
                       color: Colors.white70,
                       fontSize: 14,
                     ),
                   ),
                   const SizedBox(height: 16),
-
-                  // Stats Row
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _StatItem(value: '12', label: 'Bookings'),
-                      _Divider(),
-                      _StatItem(value: '3', label: 'Active'),
-                      _Divider(),
-                      _StatItem(value: '5★', label: 'Rating'),
+                      _StatItem(
+                        value: totalBookings.toString(),
+                        label: 'Bookings',
+                      ),
+                      _VerticalDivider(),
+                      _StatItem(
+                        value: activeBookings.toString(),
+                        label: 'Active',
+                      ),
+                      _VerticalDivider(),
+                      _StatItem(
+                        value: membershipStatus == 'Active' ? '✓' : '✗',
+                        label: 'Member',
+                      ),
                     ],
                   ),
                 ],
@@ -80,62 +136,64 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             // ── Account Section ──
-            _SectionTitle(title: 'Account'),
-            _MenuItem(
-              icon: Icons.person_outline_rounded,
-              label: 'Edit Profile',
-              onTap: () {},
-            ),
+            const _SectionTitle(title: 'ACCOUNT'),
             _MenuItem(
               icon: Icons.card_membership_rounded,
-              label: 'Membership Plan',
-              trailing: 'Pro',
-              onTap: () => Navigator.pushNamed(context, '/membership'),
+              label: 'Membership Plans',
+              trailing: membershipStatus,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => MembershipPlansScreen(
+                      userId: widget.userId,
+                      userName: widget.userName,
+                    ),
+                  ),
+                );
+              },
             ),
             _MenuItem(
               icon: Icons.notifications_outlined,
               label: 'Notifications',
-              onTap: () {},
-            ),
-            _MenuItem(
-              icon: Icons.lock_outline_rounded,
-              label: 'Change Password',
-              onTap: () {},
-            ),
-            const SizedBox(height: 16),
-
-            // ── Bookings Section ──
-            _SectionTitle(title: 'Bookings'),
-            _MenuItem(
-              icon: Icons.calendar_today_rounded,
-              label: 'My Bookings',
-              onTap: () => Navigator.pushNamed(context, '/my-bookings'),
-            ),
-            _MenuItem(
-              icon: Icons.history_rounded,
-              label: 'Payment History',
-              onTap: () => Navigator.pushNamed(context, '/payment-history'),
-            ),
-            _MenuItem(
-              icon: Icons.feedback_rounded,
-              label: 'Feedback',
-              onTap: () => Navigator.pushNamed(context, '/feedback'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const NotificationsScreen(),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 16),
 
             // ── Support Section ──
-            _SectionTitle(title: 'Support'),
+            const _SectionTitle(title: 'SUPPORT'),
             _MenuItem(
               icon: Icons.help_outline_rounded,
               label: 'Help & Support',
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const HelpSupportScreen(),
+                  ),
+                );
+              },
             ),
             _MenuItem(
               icon: Icons.info_outline_rounded,
               label: 'About CoworkHub',
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const AboutScreen(),
+                  ),
+                );
+              },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
             // ── Logout ──
             Padding(
@@ -147,7 +205,13 @@ class ProfileScreen extends StatelessWidget {
                   onPressed: () =>
                       Navigator.pushReplacementNamed(context, '/'),
                   icon: const Icon(Icons.logout_rounded),
-                  label: const Text('Logout'),
+                  label: const Text(
+                    'Logout',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red.shade400,
                     foregroundColor: Colors.white,
@@ -166,7 +230,7 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
-// ─── Helper Widgets ───────────────────────────────────────────────────────────
+// ── Helper Widgets ──
 
 class _StatItem extends StatelessWidget {
   final String value;
@@ -199,7 +263,7 @@ class _StatItem extends StatelessWidget {
   }
 }
 
-class _Divider extends StatelessWidget {
+class _VerticalDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -254,8 +318,7 @@ class _MenuItem extends StatelessWidget {
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-        padding: const EdgeInsets.symmetric(
-            horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -277,8 +340,7 @@ class _MenuItem extends StatelessWidget {
             ),
             if (trailing != null) ...[
               Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: const Color(0xFF6D4C41).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
@@ -301,4 +363,4 @@ class _MenuItem extends StatelessWidget {
       ),
     );
   }
-}*/
+}

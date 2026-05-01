@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:coworkhub/database/db_helper.dart';
-import 'package:coworkhub/ui_navigation/screens/workspace_helpers.dart';
+import 'package:coworkhub/payment_feedback_logic/services/payment_history_service.dart';
+import 'package:coworkhub/ui_navigation/helper/workspace_helpers.dart';
 
 class PaymentHistoryScreen extends StatefulWidget {
   final int userId;
@@ -13,13 +13,13 @@ class PaymentHistoryScreen extends StatefulWidget {
 
 class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   // ── Friend 3's logic ──
-  final DBHelper db = DBHelper();
+  final PaymentHistoryService paymentHistoryService = PaymentHistoryService();
   late Future<List<Map<String, dynamic>>> _paymentsFuture;
 
   @override
   void initState() {
     super.initState();
-    _paymentsFuture = db.getPaymentsWithDetailsByUser(widget.userId);
+    _paymentsFuture = paymentHistoryService.getPaymentsByUser(widget.userId);
   }
 
   // ── Your UI ──
@@ -94,7 +94,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
               final p = payments[index];
               final status = p['status'] ?? 'unknown';
               final isPaid = status == 'completed';
-              final resourceName = p['name'] ?? 'Workspace';
+              final resourceName = p['resource_name'] ?? 'Workspace';
               final total = (p['total'] as num?)?.toDouble() ?? 0.0;
 
               return Container(

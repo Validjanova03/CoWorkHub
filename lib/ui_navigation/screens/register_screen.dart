@@ -172,7 +172,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           // Background image
           SizedBox.expand(
             child: Image.asset(
-              'assets/workspace.jpg',
+              'assets/images/workspace.jpg',
               fit: BoxFit.cover,
             ),
           ),

@@ -14,7 +14,7 @@ class WelcomeScreen extends StatelessWidget {
           // 🖼 BACKGROUND IMAGE
           SizedBox.expand(
             child: Image.asset(
-              'assets/workspace.jpg',
+              'assets/images/workspace.jpg',
               fit: BoxFit.cover,
             ),
           ),

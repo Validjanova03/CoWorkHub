@@ -63,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
           // Background image
           SizedBox.expand(
             child: Image.asset(
-              'assets/workspace.jpg',
+              'assets/images/workspace.jpg',
               fit: BoxFit.cover,
             ),
           ),

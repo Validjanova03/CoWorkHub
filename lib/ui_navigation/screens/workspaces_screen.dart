@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:coworkhub/services/workspace_service.dart';
 import 'package:coworkhub/database/db_helper.dart';
 import 'package:coworkhub/ui_navigation/screens/workspace_details_screen.dart';
 import 'package:coworkhub/payment_feedback_logic/widgets/rating_stars.dart';
@@ -21,7 +22,7 @@ class WorkspacesScreen extends StatefulWidget {
 }
 
 class _WorkspacesScreenState extends State<WorkspacesScreen> {
-  final DBHelper dbHelper = DBHelper();
+  final WorkspaceService workspaceService = WorkspaceService();
   List<Map<String, dynamic>> workspaces = [];
   List<Map<String, dynamic>> allAmenities = [];
   Map<int, double> workspaceRatings = {};
@@ -37,8 +38,9 @@ class _WorkspacesScreenState extends State<WorkspacesScreen> {
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
 
-    final workspaceData = await dbHelper.getWorkspaces();
-    final amenityData = await dbHelper.getAmenities();
+    final workspaceData = await workspaceService.getWorkspaces();
+    final amenityData = await workspaceService.getAmenities();
+    final dbHelper = DBHelper();
     final db = await dbHelper.db;
     Map<int, double> ratings = {};
 

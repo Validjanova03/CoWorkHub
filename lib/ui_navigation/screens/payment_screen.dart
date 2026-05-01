@@ -52,7 +52,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       );
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Payment successful! Booking confirmed. 🎉')),
+          const SnackBar(content: Text('Payment successful! Booking confirmed.')),
         );
         Navigator.pushReplacement(
           context,

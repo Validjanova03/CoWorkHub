@@ -2,13 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:coworkhub/ui_navigation/screens/welcome_screen.dart';
 import 'package:coworkhub/ui_navigation/screens/login_screen.dart';
 import 'package:coworkhub/ui_navigation/screens/register_screen.dart';
-import 'package:coworkhub/ui_navigation/screens/profile_screen.dart';
-import 'package:coworkhub/ui_navigation/screens/workspaces_screen.dart';
-// Remove this if it exists:
-import 'package:coworkhub/ui_navigation/screens/booking_screen.dart';
 
-// Keep this if needed:
-import 'package:coworkhub/booking_membership_logic/screens/booking_screen.dart';
 void main() {
   runApp(const MyApp());
 }
@@ -54,13 +48,6 @@ class _MyAppState extends State<MyApp> {
       routes: {
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
-
-          '/workspaces': (context) => WorkspacesScreen(userId: 1),
-
-       /* '/profile': (context) => const ProfileScreen(
-          displayName: 'User',
-          initials: 'U',
-        ),*/
       },
     );
   }

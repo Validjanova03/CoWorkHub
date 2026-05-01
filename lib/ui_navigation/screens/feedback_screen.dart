@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:coworkhub/database/db_helper.dart';
+import 'package:coworkhub/payment_feedback_logic/services/feedback_service.dart';
+import 'package:coworkhub/ui_navigation/helper/workspace_helpers.dart';
 import 'package:coworkhub/payment_feedback_logic/widgets/rating_stars.dart';
 
 class FeedbackScreen extends StatefulWidget {
@@ -19,45 +20,12 @@ class FeedbackScreen extends StatefulWidget {
 }
 
 class _FeedbackScreenState extends State<FeedbackScreen> {
-  final DBHelper dbHelper = DBHelper();
+  final FeedbackService feedbackService = FeedbackService();
   final TextEditingController _commentController = TextEditingController();
 
   double _rating = 0;
   bool _isLoading = false;
 
-  String _getImageForWorkspace(String name) {
-    if (name.contains('Hot Desk')) {
-      if (name == 'Hot Desk 1') return 'assets/images/hot_desk.jpg';
-      if (name == 'Hot Desk 2') return 'assets/images/hot_desk2.png';
-      if (name == 'Hot Desk 3') return 'assets/images/hot_desk_3.png';
-      if (name == 'Hot Desk 4') return 'assets/images/hot_desk_4.png';
-      if (name == 'Hot Desk 5') return 'assets/images/hot_desk_5.png';
-      return 'assets/images/hot_desk.png';
-    }
-
-    if (name.contains('Dedicated Room')) {
-      if (name == 'Dedicated Room 1') return 'assets/images/dedicated_desk.jpg';
-      if (name == 'Dedicated Room 2') return 'assets/images/dedicated_desk2.png';
-      if (name == 'Dedicated Room 3') return 'assets/images/dedicated_room_3.png';
-      if (name == 'Dedicated Room 4') return 'assets/images/dedicated_desk_4.png';
-      return 'assets/images/dedicated_desk.png';
-    }
-
-    if (name.contains('Meeting Room')) {
-      if (name == 'Meeting Room 1') return 'assets/images/meeting_room.jpg';
-      if (name == 'Meeting Room 2') return 'assets/images/meeting_room2.png';
-      if (name == 'Meeting Room 3') return 'assets/images/meeting_room_3.png';
-      return 'assets/images/meeting_room.png';
-    }
-
-    if (name.contains('Conference Hall')) {
-      if (name == 'Conference Hall 1') return 'assets/images/conference_hall.jpg';
-      if (name == 'Conference Hall 2') return 'assets/images/conference_hall2.png';
-      return 'assets/images/conference_hall.png';
-    }
-
-    return 'assets/images/workspace.png';
-  }
 
   Future<void> _submitFeedback() async {
     if (_rating == 0) {
@@ -77,13 +45,12 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await dbHelper.insertFeedback({
-        'user_id': widget.userId,
-        'resource_id': widget.resourceId,
-        'rating': _rating,
-        'message': _commentController.text.trim(),
-        'submitted_at': DateTime.now().toIso8601String(),
-      });
+      await feedbackService.submitFeedback(
+        userId: widget.userId,
+        resourceId: widget.resourceId,
+        rating: _rating,
+        message: _commentController.text.trim(),
+          );
 
       if (!mounted) return;
 
@@ -136,7 +103,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(16), // Same as white container
                     child: Image.asset(
-                      _getImageForWorkspace(widget.resourceName),
+                      WorkspaceHelpers.getImage(widget.resourceName),
                       width: double.infinity,
                       height: 180, // Much bigger!
                       fit: BoxFit.cover,

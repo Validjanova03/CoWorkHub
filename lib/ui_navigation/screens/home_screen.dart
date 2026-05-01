@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:coworkhub/database/db_helper.dart';
+import 'package:coworkhub/services/workspace_service.dart';
 import 'package:coworkhub/ui_navigation/screens/workspaces_screen.dart';
 import 'package:coworkhub/ui_navigation/screens/workspace_details_screen.dart';
 import 'package:coworkhub/payment_feedback_logic/widgets/rating_stars.dart';
@@ -57,8 +57,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadWorkspaces() async {
     setState(() => _isLoading = true);
     try {
-      DBHelper dbHelper = DBHelper();
-      _allWorkspaces = await dbHelper.getWorkspaces();
+      final WorkspaceService workspaceService = WorkspaceService();
+      _allWorkspaces = await workspaceService.getWorkspaces();
       setState(() => _isLoading = false);
     } catch (e) {
       setState(() => _isLoading = false);

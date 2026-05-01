@@ -4,10 +4,10 @@ class BookingService {
   final DBHelper dbHelper = DBHelper();
 
   Future<List<Map<String, dynamic>>> getUserBookings(int userId) async {
-    return await dbHelper.getBookings(userId);
+    return await dbHelper.getBookingsWithResourceByUser(userId);
   }
 
-  Future<String?> createBooking({
+  Future<dynamic> createBooking({
     required int userId,
     required int resourceId,
     required DateTime startDateTime,
@@ -31,7 +31,7 @@ class BookingService {
       return 'This workspace is already booked for that time';
     }
 
-    await dbHelper.insertBooking({
+    int bookingId = await dbHelper.insertBooking({
       'user_id': userId,
       'resource_id': resourceId,
       'start_time': startDateTime.toString(),
@@ -39,7 +39,7 @@ class BookingService {
       'booking_status': 'Active',
     });
 
-    return null;
+    return bookingId;
   }
 
   Future<void> cancelBooking(int bookingId) async {

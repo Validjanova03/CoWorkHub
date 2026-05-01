@@ -499,5 +499,22 @@ CREATE TABLE invoice (
     ''',
       whereArgs: [resourceId, 'Active', startTime, endTime],
     );
-  } // Until here
+  }
+  Future<List<Map<String, dynamic>>> getBookingsWithResourceByUser(int userId) async {
+    final dbClient = await db;
+
+    return await dbClient.rawQuery('''
+    SELECT 
+      b.booking_id,
+      b.start_time,
+      b.end_time,
+      b.booking_status,
+      r.name AS resource_name
+    FROM booking b
+    JOIN resources r ON b.resource_id = r.resource_id
+    WHERE b.user_id = ?
+    ORDER BY b.start_time DESC
+  ''', [userId]);
+  }
+  // Until here
 }

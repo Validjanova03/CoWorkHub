@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:coworkhub/database/db_helper.dart';
-import 'package:coworkhub/services/workspace_service.dart';
 import 'package:coworkhub/ui_navigation/screens/booking_screen.dart';
 import 'package:coworkhub/ui_navigation/screens/feedback_screen.dart';
 import 'package:coworkhub/payment_feedback_logic/widgets/rating_stars.dart';
-import 'package:coworkhub/ui_navigation/screens/workspace_helpers.dart';
-
+import 'package:coworkhub/services/workspace_service.dart';
+import 'package:coworkhub/payment_feedback_logic/services/feedback_service.dart';
+import 'package:coworkhub/ui_navigation/helper/workspace_helpers.dart';
 class WorkspaceDetailsScreen extends StatefulWidget {
   final int userId;
   final Map<String, dynamic> workspace;
@@ -24,7 +23,7 @@ class WorkspaceDetailsScreen extends StatefulWidget {
 
 class _WorkspaceDetailsScreenState extends State<WorkspaceDetailsScreen> {
   final WorkspaceService workspaceService = WorkspaceService();
-  final DBHelper dbHelper = DBHelper();
+  final FeedbackService feedbackService = FeedbackService();
   double rating = 0.0;
   int reviewCount = 0;
   List<Map<String, dynamic>> _amenities = [];
@@ -41,28 +40,15 @@ class _WorkspaceDetailsScreenState extends State<WorkspaceDetailsScreen> {
     setState(() => _isLoading = true);
     try {
       final allAmenities = await workspaceService.getAmenities();
-      final db = await dbHelper.db;
-
-      final ratingResult = await db.rawQuery(
-        'SELECT AVG(rating) as avgRating, COUNT(rating) as count FROM feedback WHERE resource_id = ?',
-        [widget.workspace['resource_id']],
-      );
-
-      final reviewsResult = await db.rawQuery(
-        'SELECT f.*, u.first_name, u.last_name FROM feedback f '
-            'JOIN users u ON f.user_id = u.user_id '
-            'WHERE f.resource_id = ? ORDER BY f.submitted_at DESC LIMIT 3',
-        [widget.workspace['resource_id']],
-      );
-
-      final hasReviews = ratingResult.isNotEmpty &&
-          ratingResult.first['avgRating'] != null &&
-          (ratingResult.first['count'] as int) > 0;
+      final avgRating = await feedbackService.getAverageRating(
+          widget.workspace['resource_id']);
+      final reviews = await feedbackService.getReviews(
+          widget.workspace['resource_id']);
 
       setState(() {
-        rating = hasReviews ? (ratingResult.first['avgRating'] as num).toDouble() : 0.0;
-        reviewCount = hasReviews ? (ratingResult.first['count'] as int) : 0;
-        _reviews = hasReviews ? reviewsResult : [];
+        rating = avgRating;
+        reviewCount = reviews.length;
+        _reviews = reviews;
         _amenities = allAmenities;
         _isLoading = false;
       });

@@ -127,7 +127,7 @@ class _BookingScreenState extends State<BookingScreen> {
         return;
       }
 
-      final result = await bookingService.createBooking(
+      var result = await bookingService.createBooking(
         userId: widget.userId,
         resourceId: widget.resourceId,
         startDateTime: startDateTime,

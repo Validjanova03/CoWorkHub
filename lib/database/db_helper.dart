@@ -26,7 +26,7 @@ class DBHelper {
     String path = join(await getDatabasesPath(), 'app.db');
     return await openDatabase(
       path,
-      version: 7,
+      version: 10,
       onCreate: _onCreate,
     );
   }

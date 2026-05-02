@@ -28,6 +28,7 @@ class DBHelper {
       path,
       version: 10,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
   Future<void> _onCreate(Database db, int version) async {
@@ -200,6 +201,10 @@ CREATE TABLE invoice (
     });
 
 
+
+
+
+
     // ================= WORKSPACES =================
 
     // 5 Hot Desks
@@ -285,6 +290,22 @@ CREATE TABLE invoice (
       'method': 'Credit Card',
       'status': 'Completed',
     });
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+
+    if (oldVersion < 10) {
+
+      try {
+        await db.execute('ALTER TABLE invoice ADD COLUMN booking_id INTEGER');
+      } catch (e) {}
+
+      try {
+        await db.execute('ALTER TABLE workspace ADD COLUMN capacity INTEGER');
+      } catch (e) {}
+
+    }
+
   }
 
   Future<int> insertUser(Map<String, dynamic> user) async {

@@ -207,7 +207,7 @@ class HelpSupportScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // ── Still need help ──
+
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -255,7 +255,52 @@ class HelpSupportScreen extends StatelessWidget {
                         ),
                         const SizedBox(width: 12),
                         ElevatedButton.icon(
-                          onPressed: () {},
+                          onPressed: () {
+                            showModalBottomSheet(
+                              context: context,
+                              backgroundColor: Colors.transparent,
+                              builder: (ctx) => Container(
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(24),
+                                    topRight: Radius.circular(24),
+                                  ),
+                                ),
+                                padding: const EdgeInsets.all(24),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 40,
+                                      height: 4,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFD7CCC8),
+                                        borderRadius: BorderRadius.circular(2),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 20),
+                                    const Text("Contact Information",
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF3E2723))),
+                                    const SizedBox(height: 20),
+                                    Row(
+                                      children: [
+                                        Expanded(child: _contactCard(Icons.mail_outline_rounded, "Email Us", "support@coworkhub.com", "We'll reply within 24 hours")),
+                                        const SizedBox(width: 10),
+                                        Expanded(child: _contactCard(Icons.phone_outlined, "Call Us", "+90 212 123 4567", "Mon - Fri, 9AM - 6PM")),
+                                        const SizedBox(width: 10),
+                                        Expanded(child: _contactCard(Icons.chat_bubble_outline_rounded, "Live Chat", "Chat with our team", "Available in app")),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 20),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
                           icon: const Icon(Icons.mail_outline_rounded,
                               size: 16),
                           label: const Text(
@@ -277,47 +322,6 @@ class HelpSupportScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // ── Contact Information ──
-                  const Text(
-                    "Contact Information",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF3E2723),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _contactCard(
-                          Icons.mail_outline_rounded,
-                          "Email Us",
-                          "support@coworkhub.com",
-                          "We'll reply within 24 hours",
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _contactCard(
-                          Icons.phone_outlined,
-                          "Call Us",
-                          "+90 212 123 4567",
-                          "Mon - Fri, 9AM - 6PM",
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _contactCard(
-                          Icons.chat_bubble_outline_rounded,
-                          "Live Chat",
-                          "Chat with our team",
-                          "Available in app",
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 30),
                 ],
               ),
             ),

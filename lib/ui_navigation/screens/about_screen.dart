@@ -28,7 +28,7 @@ class AboutScreen extends StatelessWidget {
                 Container(
                   height: 220,
                   width: double.infinity,
-                  color: Colors.black.withOpacity(0.4),
+                  color: Colors.black.withValues(alpha: 0.4),
                 ),
                 // Back button
                 Positioned(

@@ -4,7 +4,7 @@ import 'package:coworkhub/ui_navigation/screens/payment_screen.dart';
 import 'package:coworkhub/payment_feedback_logic/services/payment_service.dart';
 import 'package:coworkhub/ui_navigation/screens/home_screen.dart';
 import 'package:coworkhub/ui_navigation/helper/workspace_helpers.dart';
-
+import 'package:coworkhub/ui_navigation/helper/snackbar_helper.dart';
 class BookingScreen extends StatefulWidget {
   final int userId;
   final int resourceId;
@@ -36,7 +36,7 @@ class _BookingScreenState extends State<BookingScreen> {
   DateTime? _selectedDate;
   TimeOfDay? _startTime;
   TimeOfDay? _endTime;
-  int _durationHours = 0;
+  double _durationHours = 0.0;
   bool _isLoading = false;
 
   @override
@@ -83,8 +83,11 @@ class _BookingScreenState extends State<BookingScreen> {
       int endMinutes = _endTime!.hour * 60 + _endTime!.minute;
       int diffMinutes = endMinutes - startMinutes;
       if (diffMinutes < 0) diffMinutes += 24 * 60;
-      _durationHours = diffMinutes ~/ 60;
-      if (_durationHours < 1) _durationHours = 0;
+      if (diffMinutes < 60) {
+         _durationHours = 0;
+      } else {
+        _durationHours = diffMinutes / 60; //  decimal
+      }
       setState(() {});
     }
   }
@@ -158,9 +161,7 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
-    );
+    SnackbarHelper.showError(context, message);
   }
   void _showPaymentDialog(int bookingId) {
     showDialog(
@@ -193,6 +194,12 @@ class _BookingScreenState extends State<BookingScreen> {
                   bookingId: bookingId,
                   userId: widget.userId,
                   userName: widget.userName,
+                  resourceName: widget.resourceName,
+                  date: _formatDate(),
+                  startTime: _startTime,
+                  endTime: _endTime,
+                  capacity: widget.capacity,
+                  total: _totalPrice,
                 ),
               ));
             },
@@ -252,7 +259,7 @@ class _BookingScreenState extends State<BookingScreen> {
                       width: 120,
                       height: 140,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
+                      errorBuilder: (context, error, stackTrace) => Container(
                         width: 120,
                         height: 140,
                         color: const Color(0xFFE8D5D0),
@@ -455,7 +462,7 @@ class _BookingScreenState extends State<BookingScreen> {
                           fontSize: 14, color: Color(0xFF6B7280))),
                   Text(
                     _durationHours > 0
-                        ? "$_durationHours hour${_durationHours != 1 ? 's' : ''}"
+                        ? "${_durationHours.toStringAsFixed(1)} hours"
                         : "Select time",
                     style: const TextStyle(
                         fontSize: 16,
@@ -497,13 +504,13 @@ class _BookingScreenState extends State<BookingScreen> {
                   _summaryRow(
                     "Duration",
                     _durationHours > 0
-                        ? "$_durationHours hour${_durationHours != 1 ? 's' : ''}"
+                        ? "${_durationHours.toStringAsFixed(1)} hours"
                         : "Not selected",
                   ),
                   const SizedBox(height: 8),
                   _summaryRow(
                     "Base Price",
-                    "\$${widget.rate.toStringAsFixed(0)} x $_durationHours hour${_durationHours != 1 ? 's' : ''}",
+                    "\$${widget.rate.toStringAsFixed(0)} x ${_durationHours.toStringAsFixed(1)} hours", // ✅
                   ),
                   const Divider(height: 24),
                   _summaryRow(

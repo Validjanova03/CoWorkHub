@@ -211,7 +211,7 @@ class _WorkspacesScreenState extends State<WorkspacesScreen> {
                             width: 100,
                             height: 100,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
+                            errorBuilder: (context, error, stackTrace) => Container(
                               width: 100,
                               height: 100,
                               color: const Color(0xFFE8D5D0),
@@ -296,7 +296,7 @@ class _WorkspacesScreenState extends State<WorkspacesScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF6D4C41).withOpacity(0.1),
+                                color: const Color(0xFF6D4C41).withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
@@ -324,7 +324,7 @@ class _WorkspacesScreenState extends State<WorkspacesScreen> {
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10)),
                               ),
-                              child: const Text("Book Now",
+                              child: const Text("View Details",
                                   style: TextStyle(fontSize: 11, color: Colors.white)),
                             ),
                           ],

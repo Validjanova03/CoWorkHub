@@ -21,7 +21,7 @@ class WelcomeScreen extends StatelessWidget {
 
 
           Container(
-            color: Colors.black.withOpacity(0.55),
+            color: Colors.black.withValues(alpha: 0.55),
           ),
 
 

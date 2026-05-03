@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:coworkhub/booking_membership_logic/services/auth_service.dart';
 import 'package:coworkhub/ui_navigation/screens/home_screen.dart';
 import 'package:coworkhub/ui_navigation/screens/register_screen.dart';
-
+import 'package:coworkhub/ui_navigation/helper/snackbar_helper.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -38,9 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid email or password')),
-      );
+      SnackbarHelper.showError(context, 'Invalid email or password');
     }
   }
 
@@ -62,7 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
           // Dark overlay
           Container(
-            color: Colors.black.withOpacity(0.55),
+            color: Colors.black.withValues(alpha: 0.55),
           ),
 
           // Login Card

@@ -109,7 +109,7 @@ class _WorkspaceDetailsScreenState extends State<WorkspaceDetailsScreen> {
                 height: 280,
                 width: double.infinity,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
+                errorBuilder: (context, error, stackTrace) => Container(
                   height: 280,
                   width: double.infinity,
                   color: const Color(0xFFE8D5D0),

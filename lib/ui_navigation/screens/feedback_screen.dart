@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:coworkhub/payment_feedback_logic/services/feedback_service.dart';
 import 'package:coworkhub/ui_navigation/helper/workspace_helpers.dart';
-import 'package:coworkhub/payment_feedback_logic/widgets/rating_stars.dart';
+import 'package:coworkhub/ui_navigation/helper/snackbar_helper.dart';
 
 class FeedbackScreen extends StatefulWidget {
   final int userId;
@@ -29,16 +29,14 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
 
   Future<void> _submitFeedback() async {
     if (_rating == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a rating')),
-      );
+      SnackbarHelper.showError(context, 'Please select a rating');
       return;
     }
 
-    if (_commentController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please write a comment')),
-      );
+    if (_commentController.text
+        .trim()
+        .isEmpty) {
+      SnackbarHelper.showError(context, 'Please write a comment');
       return;
     }
 
@@ -50,19 +48,14 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         resourceId: widget.resourceId,
         rating: _rating,
         message: _commentController.text.trim(),
-          );
+      );
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Thank you for your feedback!')),
-      );
-
+      SnackbarHelper.showSuccess(context, 'Thank you for your feedback!');
       Navigator.pop(context, true);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-      );
+      SnackbarHelper.showError(context, 'Error: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -101,7 +94,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                 children: [
                   // BIG IMAGE at the top - same border radius as white box (16)
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(16), // Same as white container
+                    borderRadius: BorderRadius.circular(16),
+                    // Same as white container
                     child: Image.asset(
                       WorkspaceHelpers.getImage(widget.resourceName),
                       width: double.infinity,
@@ -112,7 +106,9 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                           width: double.infinity,
                           height: 180,
                           color: const Color(0xFFE8D5D0),
-                          child: const Icon(Icons.meeting_room_rounded, size: 60, color: Color(0xFF8D6E63)),
+                          child: const Icon(
+                              Icons.meeting_room_rounded, size: 60,
+                              color: Color(0xFF8D6E63)),
                         );
                       },
                     ),
@@ -123,7 +119,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                     children: [
                       const Text(
                         "Reviewing:",
-                        style: TextStyle(fontSize: 14, color: Color(0xFF8D6E63)),
+                        style: TextStyle(
+                            fontSize: 14, color: Color(0xFF8D6E63)),
                       ),
                       const SizedBox(width: 8),
                       Text(
@@ -154,30 +151,37 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
             Center(
               child: Column(
                 children: [
-                  RatingStars(rating: _rating, size: 40),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(5, (index) {
+                      return GestureDetector(
+                        onTap: () => setState(() => _rating = (index + 1).toDouble()),
+                        child: Icon(
+                          index < _rating ? Icons.star_rounded : Icons.star_outline_rounded,
+                          color: index < _rating
+                              ? Colors.amber
+                              : const Color(0xFFD7CCC8),
+                          size: 45,
+                        ),
+                      );
+                    }),
+                  ),
                   const SizedBox(height: 8),
                   Text(
-                    _rating == 0 ? "Tap the buttons below to rate" : "${_rating.toStringAsFixed(0)} stars",
+                    _rating == 0
+                        ? "Tap a star to rate"
+                        : "${_rating.toStringAsFixed(0)} stars",
                     style: TextStyle(
                       fontSize: 14,
-                      color: _rating == 0 ? const Color(0xFF9CA3AF) : const Color(0xFF6D4C41),
+                      color: _rating == 0
+                          ? const Color(0xFF9CA3AF)
+                          : const Color(0xFF6D4C41),
                     ),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _ratingButton(1),
-                _ratingButton(2),
-                _ratingButton(3),
-                _ratingButton(4),
-                _ratingButton(5),
-              ],
-            ),
-            const SizedBox(height: 24),
 
             // Comment section
             const Text(
@@ -238,39 +242,6 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
             ),
             const SizedBox(height: 20),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _ratingButton(int value) {
-    final isSelected = _rating == value;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _rating = value.toDouble();
-        });
-      },
-      child: Container(
-        width: 50,
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF6D4C41) : Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected ? const Color(0xFF6D4C41) : const Color(0xFFD7CCC8),
-          ),
-        ),
-        child: Center(
-          child: Text(
-            value.toString(),
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: isSelected ? Colors.white : const Color(0xFF3E2723),
-            ),
-          ),
         ),
       ),
     );

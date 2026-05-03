@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:coworkhub/booking_membership_logic/services/booking_service.dart';
 import 'package:coworkhub/ui_navigation/helper/workspace_helpers.dart';
+import 'package:coworkhub/ui_navigation/screens/payment_screen.dart';
+import 'package:coworkhub/ui_navigation/helper/snackbar_helper.dart';
 
 class MyBookingsScreen extends StatefulWidget {
   final int userId;
-
-  const MyBookingsScreen({super.key, required this.userId});
+  final String userName;
+  const MyBookingsScreen({super.key,
+    required this.userId,
+    required this.userName,
+  });
 
   @override
   State<MyBookingsScreen> createState() => _MyBookingsScreenState();
@@ -35,9 +40,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   Future<void> _cancelBooking(int bookingId) async {
     await bookingService.cancelBooking(bookingId);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Booking cancelled')),
-    );
+    SnackbarHelper.showSuccess(context, 'Booking cancelled');
     _loadBookings();
   }
 
@@ -114,7 +117,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
+                color: Colors.white.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -192,8 +195,6 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   Widget _featuredBookingCard(Map<String, dynamic> booking) {
     final status = booking['booking_status'] ?? '';
     final resourceName = booking['resource_name'] ?? 'Workspace';
-
-
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       child: Column(
@@ -226,7 +227,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                     width: double.infinity,
                     height: 160,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
+                    errorBuilder: (context, error, stackTrace) => Container(
                       height: 160,
                       color: const Color(0xFFE8D5D0),
                       child: const Icon(Icons.meeting_room_rounded,
@@ -254,7 +255,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: _getStatusColor(status).withOpacity(0.1),
+                              color: _getStatusColor(status).withValues(alpha:0.1),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
@@ -283,36 +284,45 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                         children: [
                           Expanded(
                             child: OutlinedButton(
-                              onPressed: () {},
-                              style: OutlinedButton.styleFrom(
-                                side: const BorderSide(
-                                    color: Color(0xFFD7CCC8)),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10)),
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 12),
-                              ),
-                              child: const Text("View Details",
-                                  style: TextStyle(
-                                      color: Color(0xFF5D4037),
-                                      fontSize: 13)),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: () =>
-                                  _cancelBooking(booking['booking_id']),
+                              onPressed: () => _cancelBooking(booking['booking_id']),
                               style: OutlinedButton.styleFrom(
                                 side: const BorderSide(color: Colors.red),
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10)),
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 12),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
                               ),
                               child: const Text("Cancel Booking",
-                                  style: TextStyle(
-                                      color: Colors.red, fontSize: 13)),
+                                  style: TextStyle(color: Colors.red, fontSize: 13)),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => PaymentScreen(
+                                        bookingId: booking['booking_id'],
+                                        userId: widget.userId,
+                                        userName: widget.userName,
+                                        resourceName: booking['resource_name'] ?? 'Workspace',
+                                        date: _formatDateTime(booking['start_time'] ?? ''),
+                                        startTime: null,
+                                        endTime: null,
+                                        capacity: 1,
+                                        total: 0.0,
+                                      ),
+                                  ));
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF6D4C41),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10)),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                              child: const Text("Pay Now",
+                                  style: TextStyle(color: Colors.white, fontSize: 13)),
                             ),
                           ),
                         ],
@@ -361,7 +371,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
               width: 80,
               height: 80,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
+              errorBuilder: (context, error, stackTrace) => Container(
                 width: 80,
                 height: 80,
                 color: const Color(0xFFE8D5D0),
@@ -392,7 +402,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: _getStatusColor(status).withOpacity(0.1),
+                        color: _getStatusColor(status).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
@@ -419,11 +429,11 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          const Icon(Icons.arrow_forward_ios_rounded,
-              size: 14, color: Color(0xFF8D6E63)),
+
         ],
       ),
-    );
+        );
+
   }
 
   Widget _infoRow(IconData icon, String text, {double fontSize = 12}) {

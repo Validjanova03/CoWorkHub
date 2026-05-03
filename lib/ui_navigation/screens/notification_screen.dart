@@ -100,7 +100,7 @@ class NotificationsScreen extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -153,12 +153,12 @@ class NotificationsScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isRead
                         ? Colors.white
-                        : const Color(0xFF6D4C41).withOpacity(0.05),
+                        : const Color(0xFF6D4C41).withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
                       color: isRead
                           ? const Color(0xFFD7CCC8)
-                          : const Color(0xFF6D4C41).withOpacity(0.3),
+                          : const Color(0xFF6D4C41).withValues(alpha: 0.3),
                     ),
                   ),
                   child: Row(
@@ -169,7 +169,7 @@ class NotificationsScreen extends StatelessWidget {
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
                           color: (notification['color'] as Color)
-                              .withOpacity(0.1),
+                              .withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(

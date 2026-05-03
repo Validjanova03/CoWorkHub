@@ -68,6 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
         int resourceId = workspace['resource_id'];
         _workspaceRatings[resourceId] =
         await feedbackService.getAverageRating(resourceId);
+        print('Resource: ${workspace['name']} Rating: ${_workspaceRatings[resourceId]}');
       }
 
       setState(() => _isLoading = false);
@@ -106,8 +107,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   List<Map<String, dynamic>> get _popularWorkspaces {
-    final shuffled = List<Map<String, dynamic>>.from(_allWorkspaces)..shuffle();
-    return shuffled.take(4).toList();
+    if (_allWorkspaces.length < 4) return _allWorkspaces;
+    return [
+      _allWorkspaces[1],  // Hot Desk 2
+      _allWorkspaces[5],  // Dedicated Room 1
+      _allWorkspaces[8],  // Meeting Room 2
+      _allWorkspaces[11], // Conference Hall 1
+    ];
   }
 
   List<Map<String, dynamic>> get _availableWorkspaces {
@@ -144,7 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final List<Widget> pages = [
       _buildHomePage(),
       WorkspacesScreen(userId: widget.userId, userName: widget.userName),
-      MyBookingsScreen(userId: widget.userId),
+      MyBookingsScreen(userId: widget.userId, userName: widget.userName,),
       PaymentHistoryScreen(userId: widget.userId),
       ProfileScreen(
         userId: widget.userId,
@@ -529,13 +535,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const RatingStars(rating: 4.5, size: 12),
+                      if (rating > 0)
+                        RatingStars(rating: rating, size: 12)
+                      else
+                        const Text(
+                          "No reviews yet",
+                          style: TextStyle(fontSize: 9, color: Color(0xFF8D6E63)),
+                        ),
                       if (isAvailable)
-                        Text("Available",
-                            style: TextStyle(
-                                fontSize: 9,
-                                color: Colors.green.shade700,
-                                fontWeight: FontWeight.w500)),
+                        Text(
+                          "Available",
+                          style: TextStyle(
+                              fontSize: 9,
+                              color: Colors.green.shade700,
+                              fontWeight: FontWeight.w500),
+                        ),
                     ],
                   ),
                   const SizedBox(height: 4),

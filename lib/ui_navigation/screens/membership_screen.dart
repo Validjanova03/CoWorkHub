@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:coworkhub/booking_membership_logic/services/membership_service.dart';
-import 'package:coworkhub/ui_navigation/screens/home_screen.dart';
+import 'package:coworkhub/ui_navigation/helper/snackbar_helper.dart';
 
 class MembershipPlansScreen extends StatefulWidget {
   final int userId;
@@ -17,7 +17,6 @@ class MembershipPlansScreen extends StatefulWidget {
 }
 
 class _MembershipPlansScreenState extends State<MembershipPlansScreen> {
-  // ── Friend 1's logic (untouched) ──
   final MembershipService membershipService = MembershipService();
   List<Map<String, dynamic>> plans = [];
   Map<String, dynamic>? activeMembership;
@@ -54,21 +53,16 @@ class _MembershipPlansScreenState extends State<MembershipPlansScreen> {
     if (!mounted) return;
 
     if (error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error)),
-      );
+      SnackbarHelper.showError(context, error);
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Membership subscribed successfully!')),
-    );
+    SnackbarHelper.showSuccess(context, 'Membership subscribed successfully!');
 
     await loadActiveMembership();
     setState(() {});
   }
 
-  // ── Your UI ──
   IconData _getPlanIcon(String planName) {
     if (planName.toLowerCase().contains('weekly')) return Icons.calendar_view_week_rounded;
     if (planName.toLowerCase().contains('standard')) return Icons.star_rounded;
@@ -83,6 +77,286 @@ class _MembershipPlansScreenState extends State<MembershipPlansScreen> {
     return const Color(0xFF6D4C41);
   }
 
+  void _showMembershipPaymentSheet(Map<String, dynamic> plan) {
+    final cardController = TextEditingController();
+    final expiryController = TextEditingController();
+    final cvvController = TextEditingController();
+    final nameController = TextEditingController();
+    String detectedCard = '';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setSheetState) => Container(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom,
+          ),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Handle bar
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD7CCC8),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  "Card Information",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF3E2723),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Card Number
+                const Text("Card Number",
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF3E2723))),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: cardController,
+                  keyboardType: TextInputType.number,
+                  onChanged: (value) {
+                    setSheetState(() {
+                      if (value.startsWith('4')) {
+                        detectedCard = 'visa';
+                      } else if (value.startsWith('5')) {
+                        detectedCard = 'mastercard';
+                      } else {
+                        detectedCard = '';
+                      }
+                    });
+                  },
+                  decoration: InputDecoration(
+                    hintText: "1234 5678 9012 3456",
+                    hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
+                    prefixIcon: const Icon(Icons.credit_card_rounded,
+                        color: Color(0xFF6D4C41)),
+                    suffixIcon: detectedCard.isNotEmpty
+                        ? Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Image.asset(
+                        'assets/images/$detectedCard.png',
+                        height: 30,
+                      ),
+                    )
+                        : null,
+                    filled: true,
+                    fillColor: const Color(0xFFFAF7F4),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                        const BorderSide(color: Color(0xFFD7CCC8))),
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                        const BorderSide(color: Color(0xFFD7CCC8))),
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                        const BorderSide(color: Color(0xFF6D4C41))),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Cardholder Name
+                const Text("Cardholder Name",
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF3E2723))),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    hintText: "John Doe",
+                    hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
+                    prefixIcon: const Icon(Icons.person_outline_rounded,
+                        color: Color(0xFF6D4C41)),
+                    filled: true,
+                    fillColor: const Color(0xFFFAF7F4),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                        const BorderSide(color: Color(0xFFD7CCC8))),
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                        const BorderSide(color: Color(0xFFD7CCC8))),
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                        const BorderSide(color: Color(0xFF6D4C41))),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Expiry and CVV
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text("Expiry Date",
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF3E2723))),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: expiryController,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              hintText: "MM/YY",
+                              hintStyle: const TextStyle(
+                                  color: Color(0xFF9CA3AF)),
+                              filled: true,
+                              fillColor: const Color(0xFFFAF7F4),
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                      color: Color(0xFFD7CCC8))),
+                              enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                      color: Color(0xFFD7CCC8))),
+                              focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                      color: Color(0xFF6D4C41))),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text("CVV",
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF3E2723))),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: cvvController,
+                            keyboardType: TextInputType.number,
+                            maxLength: 3,
+                            obscureText: true,
+                            decoration: InputDecoration(
+                              hintText: "123",
+                              hintStyle: const TextStyle(
+                                  color: Color(0xFF9CA3AF)),
+                              counterText: "",
+                              filled: true,
+                              fillColor: const Color(0xFFFAF7F4),
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                      color: Color(0xFFD7CCC8))),
+                              enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                      color: Color(0xFFD7CCC8))),
+                              focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                      color: Color(0xFF6D4C41))),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                // Total
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5EDE8),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Total Amount",
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF3E2723),
+                        ),
+                      ),
+                      Text(
+                        "\$${(plan['price'] ?? 0).toStringAsFixed(2)}",
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF5D4037),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Pay Now Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      subscribeToPlan(plan['plan_id']);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF5D4037),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                    ),
+                    child: const Text(
+                      "Pay Now",
+                      style: TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -351,8 +625,7 @@ class _MembershipPlansScreenState extends State<MembershipPlansScreen> {
                                 SizedBox(
                                   width: double.infinity,
                                   child: ElevatedButton(
-                                    onPressed: () =>
-                                        subscribeToPlan(plan['plan_id']),
+                                    onPressed: () => _showMembershipPaymentSheet(plan),
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor:
                                       _getPlanColor(planName),

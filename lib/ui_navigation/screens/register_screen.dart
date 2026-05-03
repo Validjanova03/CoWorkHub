@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:coworkhub/booking_membership_logic/services/auth_service.dart';
 import 'package:coworkhub/ui_navigation/screens/home_screen.dart';
-
+import 'package:coworkhub/ui_navigation/helper/snackbar_helper.dart';
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -36,9 +36,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (error != null) {
       if (!mounted) return;
       setState(() => isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error)),
-      );
+      SnackbarHelper.showError(context, error);
       return;
     }
 
@@ -53,10 +51,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!mounted) return;
     setState(() => isLoading = false);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Registered successfully! 🎉')),
-    );
-
+    SnackbarHelper.showSuccess(context, 'Registered successfully! ');
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -73,7 +68,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       padding: const EdgeInsets.only(bottom: 12),
       child: TextField(
         controller: controller,
-        obscureText: obscure,
+        obscureText: obscure ? _obscurePassword : false,
         decoration: InputDecoration(
           labelText: label,
           prefixIcon: Icon(icon),
@@ -123,7 +118,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
           // Dark overlay
           Container(
-            color: Colors.black.withOpacity(0.55),
+            color: Colors.black.withValues(alpha: 0.55),
           ),
 
           // Registration Card

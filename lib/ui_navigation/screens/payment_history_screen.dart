@@ -115,7 +115,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                         width: 75,
                         height: 75,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
+                        errorBuilder: (context, error, stackTrace) => Container(
                           width: 75,
                           height: 75,
                           color: const Color(0xFFE8D5D0),
@@ -184,8 +184,8 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                               horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
                             color: isPaid
-                                ? Colors.green.withOpacity(0.1)
-                                : Colors.red.withOpacity(0.1),
+                                ? Colors.green.withValues(alpha: 0.1)
+                                : Colors.red.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(

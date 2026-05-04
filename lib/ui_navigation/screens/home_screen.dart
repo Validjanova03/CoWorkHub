@@ -68,7 +68,6 @@ class _HomeScreenState extends State<HomeScreen> {
         int resourceId = workspace['resource_id'];
         _workspaceRatings[resourceId] =
         await feedbackService.getAverageRating(resourceId);
-        print('Resource: ${workspace['name']} Rating: ${_workspaceRatings[resourceId]}');
       }
 
       setState(() => _isLoading = false);
@@ -614,8 +613,8 @@ class _HomeScreenState extends State<HomeScreen> {
               borderRadius: BorderRadius.circular(12),
               child: Image.asset(
                 WorkspaceHelpers.getImage(name),
-                width: 120,
-                height: 120,
+                width: 80,
+                height: 80,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => Container(
                   width: 120,
@@ -653,7 +652,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  Row(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (isAvailable)
                         Text("Available",
@@ -661,25 +661,28 @@ class _HomeScreenState extends State<HomeScreen> {
                                 fontSize: 12,
                                 color: Colors.green.shade700,
                                 fontWeight: FontWeight.w500)),
-                      const Spacer(),
-                      Text("\$${rate.toStringAsFixed(0)}/hour",
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                              color: Color(0xFF6D4C41))),
-                      const SizedBox(width: 12),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF6D4C41),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
-                        ),
-                        onPressed: () => _navigateToDetails(item),
-                        child: const Text("Book Now",
-                            style: TextStyle(
-                                fontSize: 13, color: Colors.white)),
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text("\$${rate.toStringAsFixed(0)}/hour",
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14,
+                                  color: Color(0xFF6D4C41))),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF6D4C41),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
+                            ),
+                            onPressed: () => _navigateToDetails(item),
+                            child: const Text("Book Now",
+                                style: TextStyle(fontSize: 11, color: Colors.white)),
+                          ),
+                        ],
                       ),
                     ],
                   ),

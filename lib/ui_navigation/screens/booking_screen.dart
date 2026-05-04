@@ -129,13 +129,26 @@ class _BookingScreenState extends State<BookingScreen> {
         setState(() => _isLoading = false);
         return;
       }
+      //lyan work
+      bool available = await bookingService.isTimeSlotAvailable(
+        resourceId: widget.resourceId,
+        start: startDateTime,
+        end: endDateTimeAdjusted,
+      );
 
+      if (!available) {
+        _showError("This time range isn't available");
+        setState(() => _isLoading = false);
+        return;
+      }
       var result = await bookingService.createBooking(
+
         userId: widget.userId,
         resourceId: widget.resourceId,
         startDateTime: startDateTime,
         endDateTime: endDateTimeAdjusted,
       );
+
 
       if (result is String) {
         if (!mounted) return;

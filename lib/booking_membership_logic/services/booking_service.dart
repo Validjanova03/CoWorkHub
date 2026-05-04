@@ -13,14 +13,14 @@ class BookingService {
     final result = await db.rawQuery('''
       SELECT * FROM booking
       WHERE resource_id = ?
-      AND booking_status = 'Confirmed'
+      AND booking_status = 'Cancelled'
       AND (
         (? < end_time) AND (? > start_time)
       )
     ''', [
       resourceId,
-      start.toIso8601String(),
-      end.toIso8601String(),
+      start.toString(),
+      end.toString(),
     ]);
 
     return result.isEmpty;

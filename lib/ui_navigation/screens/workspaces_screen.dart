@@ -105,7 +105,7 @@ class _WorkspacesScreenState extends State<WorkspacesScreen> {
           userName: widget.userName,
         ),
       ),
-    );
+    ).then((_) => _loadData());
   }
 
   @override
@@ -121,13 +121,12 @@ class _WorkspacesScreenState extends State<WorkspacesScreen> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: RefreshIndicator(
-        onRefresh: _loadData,
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator(color: Color(0xFF6D4C41)))
-            : Column(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFF6D4C41)))
+          : Column(
           children: [
-            const SizedBox(height: 12),
+          const SizedBox(height: 12),
+
 
             // Filter Chips
             SizedBox(
@@ -337,7 +336,7 @@ class _WorkspacesScreenState extends State<WorkspacesScreen> {
             ),
           ],
         ),
-      ),
-    );
+      );
+
   }
 }

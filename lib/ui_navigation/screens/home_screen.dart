@@ -107,13 +107,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   List<Map<String, dynamic>> get _popularWorkspaces {
-    if (_allWorkspaces.length < 4) return _allWorkspaces;
-    return [
-      _allWorkspaces[1],  // Hot Desk 2
-      _allWorkspaces[5],  // Dedicated Room 1
-      _allWorkspaces[8],  // Meeting Room 2
-      _allWorkspaces[11], // Conference Hall 1
-    ];
+    if (_allWorkspaces.isEmpty) return [];
+    final List<Map<String, dynamic>> popular = [];
+    final indices = [1, 5, 8, 11];
+    for (int i in indices) {
+      if (i < _allWorkspaces.length) {
+        popular.add(_allWorkspaces[i]);
+      }
+    }
+    return popular;
   }
 
   List<Map<String, dynamic>> get _availableWorkspaces {

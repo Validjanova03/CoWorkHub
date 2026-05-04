@@ -333,6 +333,35 @@ class _MembershipPlansScreenState extends State<MembershipPlansScreen> {
                   height: 56,
                   child: ElevatedButton(
                     onPressed: () {
+                      String card = cardController.text.trim();
+                      String name = nameController.text.trim();
+                      String expiry = expiryController.text.trim();
+                      String cvv = cvvController.text.trim();
+
+                      if (card.isEmpty || name.isEmpty || expiry.isEmpty || cvv.isEmpty) {
+                        Navigator.pop(ctx);
+                        SnackbarHelper.showError(context, "All fields are required");
+                        return;
+                      }
+
+                      if (card.length != 16 || !RegExp(r'^[0-9]+$').hasMatch(card)) {
+                        Navigator.pop(ctx);
+                        SnackbarHelper.showError(context, "Card number must be exactly 16 digits");
+                        return;
+                      }
+
+                      if (cvv.length != 3) {
+                        Navigator.pop(ctx);
+                        SnackbarHelper.showError(context, "Invalid CVV");
+                        return;
+                      }
+
+                      if (!RegExp(r'^(0[1-9]|1[0-2])\/\d{2}$').hasMatch(expiry)) {
+                        Navigator.pop(ctx);
+                        SnackbarHelper.showError(context, "Invalid expiry date");
+                        return;
+                      }
+
                       Navigator.pop(ctx);
                       subscribeToPlan(plan['plan_id']);
                     },

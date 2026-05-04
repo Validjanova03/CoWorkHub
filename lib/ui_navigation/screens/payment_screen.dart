@@ -34,8 +34,49 @@ class PaymentScreen extends StatefulWidget {
   @override
   State<PaymentScreen> createState() => _PaymentScreenState();
 }
-
+//lyan's changes
 class _PaymentScreenState extends State<PaymentScreen> {
+  void _validateAndPay(
+      Invoice invoice,
+      TextEditingController cardController,
+      TextEditingController nameController,
+      TextEditingController expiryController,
+      TextEditingController cvvController,
+      ) {
+    String card = cardController.text.trim();
+    String name = nameController.text.trim();
+    String expiry = expiryController.text.trim();
+    String cvv = cvvController.text.trim();
+
+    // 🔴 Required fields
+    if (card.isEmpty || name.isEmpty || expiry.isEmpty || cvv.isEmpty) {
+      Navigator.pop(context);
+      SnackbarHelper.showError(context, "All fields are required");
+      return;
+    }
+
+    // 🔴 Card must be exactly 16 digits
+    if (card.length != 16 || !RegExp(r'^[0-9]+$').hasMatch(card)) {
+      Navigator.pop(context);
+      SnackbarHelper.showError(context, "Card number must be exactly 16 digits");
+      return;
+    }
+
+    // 🔴 CVV must be 3 digits
+    if (cvv.length != 3) {
+      Navigator.pop(context);
+      SnackbarHelper.showError(context, "Invalid CVV");
+      return;
+    }
+    if (!RegExp(r'^(0[1-9]|1[0-2])\/\d{2}$').hasMatch(expiry)) {
+      Navigator.pop(context);
+      SnackbarHelper.showError(context, "Invalid expiry date");
+      return;
+    }
+
+    // ✅ If all valid → proceed
+    _pay(invoice);
+  }
   final PaymentService paymentService = PaymentService();
   final DBHelper db = DBHelper();
   late Future<Invoice?> _invoiceFuture;
@@ -249,6 +290,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             controller: expiryController,
                             keyboardType: TextInputType.number,
                             maxLength: 5,
+                            // "lyan" added the formater function
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              ExpiryDateFormatter(),
+                            ],
                             decoration: InputDecoration(
                               hintText: "MM/YY",
                               hintStyle:
@@ -362,7 +408,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: _isProcessing ? null : () => _pay(invoice),
+                    //changed onpressed "lyan"
+                    onPressed: _isProcessing
+                        ? null
+                        : () => _validateAndPay(invoice, cardController, nameController, expiryController, cvvController),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF5D4037),
                       foregroundColor: Colors.white,
@@ -655,4 +704,29 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   Widget _divider() => const Divider(
       height: 1, color: Color(0xFFD7CCC8), indent: 16, endIndent: 16);
+}
+//lyan's changes
+class ExpiryDateFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue,
+      TextEditingValue newValue,
+      ) {
+    String text = newValue.text.replaceAll('/', '');
+
+    if (text.length > 4) {
+      return oldValue;
+    }
+
+    String formatted = text;
+
+    if (text.length > 2) {
+      formatted = '${text.substring(0, 2)}/${text.substring(2)}';
+    }
+
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+  }
 }

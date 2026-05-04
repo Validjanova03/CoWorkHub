@@ -142,15 +142,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               label: 'Membership Plans',
               trailing: membershipStatus,
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => MembershipPlansScreen(
-                      userId: widget.userId,
-                      userName: widget.userName,
-                    ),
+                Navigator.push(context, MaterialPageRoute(
+                  builder: (_) => MembershipPlansScreen(
+                    userId: widget.userId,
+                    userName: widget.userName,
                   ),
-                );
+                )).then((_) => _loadStats());
+
               },
             ),
             _MenuItem(

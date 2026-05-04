@@ -143,7 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
           userName: widget.userName,
         ),
       ),
-    );
+    ).then((_) => _loadWorkspaces());
   }
 
   @override

@@ -361,6 +361,19 @@ class _MembershipPlansScreenState extends State<MembershipPlansScreen> {
                         SnackbarHelper.showError(context, "Invalid expiry date");
                         return;
                       }
+                      // 4567895241789 Add this
+                      final parts = expiry.split('/');
+                      final month = int.tryParse(parts[0])!;
+                      final year = int.tryParse(parts[1])!;
+                      final now = DateTime.now();
+                      final currentYear = now.year % 100;
+                      final currentMonth = now.month;
+
+                      if (year < currentYear || (year == currentYear && month < currentMonth)) {
+                        Navigator.pop(ctx);
+                        SnackbarHelper.showError(context, "Card has expired");
+                        return;
+                      }
 
                       Navigator.pop(ctx);
                       subscribeToPlan(plan['plan_id']);
@@ -459,39 +472,52 @@ class _MembershipPlansScreenState extends State<MembershipPlansScreen> {
                         color: const Color(0xFF6D4C41),
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.verified_rounded,
-                              color: Colors.amber, size: 32),
-                          const SizedBox(width: 12),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "Active Membership",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                "Expires: ${activeMembership!['end_date']?.toString().split(' ')[0] ?? 'N/A'}",
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
+              child: Row(
+                children: [
+                  const Icon(Icons.verified_rounded,
+                      color: Colors.amber, size: 32),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Active Membership",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
                           ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "Expires: ${activeMembership!['end_date']?.toString().split(' ')[0] ?? 'N/A'}",
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 20),
-                  ],
-
-                  // ── Plans Title ──
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      await membershipService.cancelMembership(
+                        activeMembership!['membership_id'],
+                      );
+                      if (!mounted) return;
+                      SnackbarHelper.showSuccess(context, 'Membership cancelled');
+                      await loadActiveMembership();
+                      setState(() {});
+                    },
+                    child: const Text(
+                      "Cancel",
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+                ],
+              ),
+                    ),
                   const Text(
                     "Available Plans",
                     style: TextStyle(
@@ -509,6 +535,8 @@ class _MembershipPlansScreenState extends State<MembershipPlansScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
+             ],
+
 
                   // ── Plan Cards ──
                   ...plans.map((plan) {

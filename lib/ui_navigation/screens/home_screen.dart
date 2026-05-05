@@ -315,6 +315,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _category(Icons.groups_rounded, "Meeting", "Meeting"),
                 _category(Icons.present_to_all_rounded, "Conference", "Conference"),
                 _category(Icons.lock_outline_rounded, "Dedicated", "Dedicated Room"),
+                _category(Icons.explore_rounded, "Discover Spaces", "All"),
               ],
             ),
           ),
@@ -391,7 +392,7 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Text("Available Now",
+                  child: Text("Discover Spaces",
                       style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,

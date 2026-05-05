@@ -38,20 +38,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _loadStats() async {
     final bookings = await bookingService.getUserBookings(widget.userId);
     final memberships = await membershipService.getUserMemberships(widget.userId);
+    final plans = await membershipService.getPlans();
 
     final active = memberships.firstWhere(
           (m) => m['status'] == 'Active',
       orElse: () => {},
     );
 
+    String planName = 'No Plan';
+    if (active.isNotEmpty) {
+      final plan = plans.firstWhere(
+            (p) => p['plan_id'] == active['plan_id'],
+        orElse: () => {},
+      );
+      planName = plan.isNotEmpty ? plan['plan_name'] ?? 'No Plan' : 'No Plan';
+    }
+
     setState(() {
       totalBookings = bookings.length;
       activeBookings = bookings
           .where((b) => b['booking_status'] == 'Active')
           .length;
-      membershipStatus = active.isNotEmpty
-          ? active['status'] ?? 'No Plan'
-          : 'No Plan';
+      membershipStatus = planName;
       isLoading = false;
     });
   }

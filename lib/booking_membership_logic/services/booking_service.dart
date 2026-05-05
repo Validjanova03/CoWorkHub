@@ -68,4 +68,8 @@ class BookingService {
   Future<void> cancelBooking(int bookingId) async {
     await dbHelper.cancelBooking(bookingId);
   }
+  // Get all bookings for a specific room
+  Future<List<Map<String, dynamic>>> getBookingsByResource(int resourceId) async {
+    return await dbHelper.getBookingsByResource(resourceId);
+  }
 }

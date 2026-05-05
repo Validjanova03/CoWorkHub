@@ -13,7 +13,7 @@ class BookingService {
     final result = await db.rawQuery('''
       SELECT * FROM booking
       WHERE resource_id = ?
-      AND booking_status = 'Cancelled'
+      AND booking_status != 'Cancelled'
       AND (
         (? < end_time) AND (? > start_time)
       )

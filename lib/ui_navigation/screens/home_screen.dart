@@ -9,6 +9,7 @@ import 'package:coworkhub/ui_navigation/screens/profile_screen.dart';
 import 'package:coworkhub/ui_navigation/screens/notification_screen.dart';
 import 'package:coworkhub/ui_navigation/helper/workspace_helpers.dart';
 import 'package:coworkhub/payment_feedback_logic/services/feedback_service.dart';
+import 'package:coworkhub/ui_navigation/screens/membership_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final int userId;
@@ -318,6 +319,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 20),
+          _buildPlansSection(),
+          const SizedBox(height: 20),
 
           if (searchQuery.isEmpty) ...[
             Padding(
@@ -588,6 +591,54 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildPlansSection() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5EDE8),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Upgrade Your Experience ✨",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF3E2723),
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            "Get unlimited access, discounts & premium perks",
+            style: TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
+          ),
+          const SizedBox(height: 12),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => MembershipPlansScreen(
+                    userId: widget.userId,
+                    userName: widget.userName,
+                  ),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6D4C41),
+              foregroundColor: Colors.white, //  fixes text color
+            ),
+            child: const Text("View Plans"),
+          ),
+        ],
       ),
     );
   }

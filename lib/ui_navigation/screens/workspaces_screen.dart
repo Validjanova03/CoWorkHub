@@ -60,8 +60,6 @@ class _WorkspacesScreenState extends State<WorkspacesScreen> {
 
   List<Map<String, dynamic>> get filteredWorkspaces {
     switch (selectedFilter) {
-      case "Available Now":
-        return workspaces.where((w) => w['availability_status'] == 'Available').toList();
       case "Hot Desk":
         return workspaces.where((w) => w['space_type'] == 'Hot Desk').toList();
       case "Meeting":
@@ -110,7 +108,7 @@ class _WorkspacesScreenState extends State<WorkspacesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filters = ["All", "Available Now", "Hot Desk", "Meeting", "Conference", "Dedicated Room"];
+    final filters = ["All", "Hot Desk", "Meeting", "Conference", "Dedicated Room"];
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAF7F4),

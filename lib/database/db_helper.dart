@@ -537,5 +537,16 @@ CREATE TABLE invoice (
     ORDER BY b.start_time DESC
   ''', [userId]);
   }
+  //get all bookings for specific room
+  Future<List<Map<String, dynamic>>> getBookingsByResource(int resourceId) async {
+    final dbClient = await db;
+    return await dbClient.query(
+      'booking',
+      where: 'resource_id = ? AND booking_status != ?',
+      whereArgs: [resourceId, 'Cancelled'],
+      orderBy: 'start_time ASC',
+    );
+  }
+
   // Until here
 }

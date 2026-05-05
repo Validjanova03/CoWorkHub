@@ -200,8 +200,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                       ],
                     ),
                     const SizedBox(width: 8),
-                    const Icon(Icons.arrow_forward_ios_rounded,
-                        size: 13, color: Color(0xFF8D6E63)),
+
                   ],
                 ),
               );

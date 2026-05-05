@@ -48,21 +48,21 @@ class _PaymentScreenState extends State<PaymentScreen> {
     String expiry = expiryController.text.trim();
     String cvv = cvvController.text.trim();
 
-    // 🔴 Required fields
+    //  Required fields
     if (card.isEmpty || name.isEmpty || expiry.isEmpty || cvv.isEmpty) {
       Navigator.pop(context);
       SnackbarHelper.showError(context, "All fields are required");
       return;
     }
 
-    // 🔴 Card must be exactly 16 digits
+    //  Card must be exactly 16 digits
     if (card.length != 16 || !RegExp(r'^[0-9]+$').hasMatch(card)) {
       Navigator.pop(context);
       SnackbarHelper.showError(context, "Card number must be exactly 16 digits");
       return;
     }
 
-    // 🔴 CVV must be 3 digits
+    //  CVV must be 3 digits
     if (cvv.length != 3) {
       Navigator.pop(context);
       SnackbarHelper.showError(context, "Invalid CVV");
@@ -73,8 +73,21 @@ class _PaymentScreenState extends State<PaymentScreen> {
       SnackbarHelper.showError(context, "Invalid expiry date");
       return;
     }
+    //  Add this — check if card is expired
+    final parts = expiry.split('/');
+    final month = int.tryParse(parts[0])!;
+    final year = int.tryParse(parts[1])!;
+    final now = DateTime.now();
+    final currentYear = now.year % 100;
+    final currentMonth = now.month;
 
-    // ✅ If all valid → proceed
+    if (year < currentYear || (year == currentYear && month < currentMonth)) {
+      Navigator.pop(context);
+      SnackbarHelper.showError(context, "Card has expired");
+      return;
+    }
+
+    // If all valid → proceed
     _pay(invoice);
   }
   final PaymentService paymentService = PaymentService();

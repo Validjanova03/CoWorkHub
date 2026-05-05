@@ -38,12 +38,15 @@ class _BookingScreenState extends State<BookingScreen> {
   TimeOfDay? _endTime;
   double _durationHours = 0.0;
   bool _isLoading = false;
+  List<Map<String, dynamic>> _roomBookings = [];
 
   @override
   void initState() {
     super.initState();
     _selectedDate = DateTime.now();
+    _loadRoomBookings();
   }
+
 
   Future<void> _selectDate() async {
     final picked = await showDatePicker(
@@ -225,6 +228,33 @@ class _BookingScreenState extends State<BookingScreen> {
       ),
     );
   }
+  Future<void> _loadRoomBookings() async {
+    final data = await bookingService.getBookingsByResource(widget.resourceId);
+    setState(() => _roomBookings = data);
+  }
+  String _formatDateTime(String dateTime) {
+    try {
+      final dt = DateTime.parse(dateTime);
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+      return "${months[dt.month - 1]} ${dt.day} (${days[dt.weekday - 1]}) ${_formatTime(dateTime)}";
+    } catch (e) {
+      return dateTime;
+    }
+  }
+
+  String _formatTime(String dateTime) {
+    try {
+      final dt = DateTime.parse(dateTime);
+      final hour = dt.hour > 12 ? dt.hour - 12 : dt.hour == 0 ? 12 : dt.hour;
+      final minute = dt.minute.toString().padLeft(2, '0');
+      final period = dt.hour >= 12 ? 'PM' : 'AM';
+      return "$hour:$minute $period";
+    } catch (e) {
+      return dateTime;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -333,6 +363,48 @@ class _BookingScreenState extends State<BookingScreen> {
               ),
             ),
             const SizedBox(height: 24),
+
+// ── Booked Times ──
+            if (_roomBookings.isNotEmpty) ...[
+              const Text(
+                "Already Booked Times:",
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF3E2723)),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFD7CCC8)),
+                ),
+                child: Column(
+                  children: _roomBookings.map((booking) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.access_time_outlined,
+                              size: 14, color: Color(0xFF8D6E63)),
+                          const SizedBox(width: 8),
+                          Text(
+                            "${_formatDateTime(booking['start_time'] ?? '')} — ${_formatTime(booking['end_time'] ?? '')}",
+                            style: const TextStyle(
+                                fontSize: 12, color: Color(0xFF5D4037)),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+
+
 
             // 1. Select Date
             const Text("1. Select Date",

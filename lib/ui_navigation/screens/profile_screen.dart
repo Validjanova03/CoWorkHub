@@ -187,7 +187,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 );
               },
             ),
-
+            _MenuItem( icon: Icons.info_outline_rounded, label: 'About CoworkHub', onTap: () { Navigator.push( context, MaterialPageRoute( builder: (_) => const AboutScreen(), ), ); }, ), const SizedBox(height: 24),
             const SizedBox(height: 24),
 
             // ── Logout ──

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:coworkhub/booking_membership_logic/services/membership_service.dart';
 import 'package:coworkhub/ui_navigation/helper/snackbar_helper.dart';
+import 'package:flutter/services.dart';
 
 class MembershipPlansScreen extends StatefulWidget {
   final int userId;
@@ -138,6 +139,11 @@ class _MembershipPlansScreenState extends State<MembershipPlansScreen> {
                 TextField(
                   controller: cardController,
                   keyboardType: TextInputType.number,
+                  maxLength: 16,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(16),
+                  ],
                   onChanged: (value) {
                     setSheetState(() {
                       if (value.startsWith('4')) {
@@ -229,6 +235,11 @@ class _MembershipPlansScreenState extends State<MembershipPlansScreen> {
                           TextField(
                             controller: expiryController,
                             keyboardType: TextInputType.number,
+                            maxLength: 5,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              ExpiryDateFormatter(),
+                            ],
                             decoration: InputDecoration(
                               hintText: "MM/YY",
                               hintStyle: const TextStyle(
@@ -736,6 +747,30 @@ class _MembershipPlansScreenState extends State<MembershipPlansScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+class ExpiryDateFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue,
+      TextEditingValue newValue,
+      ) {
+    String text = newValue.text.replaceAll('/', '');
+
+    if (text.length > 4) {
+      return oldValue;
+    }
+
+    String formatted = text;
+
+    if (text.length > 2) {
+      formatted = '${text.substring(0, 2)}/${text.substring(2)}';
+    }
+
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
     );
   }
 }

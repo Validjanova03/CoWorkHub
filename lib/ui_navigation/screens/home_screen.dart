@@ -462,6 +462,49 @@ class _HomeScreenState extends State<HomeScreen> {
                   _availableCard(_filteredWorkspaces[index]),
             ),
           ],
+
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFD7CCC8)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline_rounded,
+                      color: Color(0xFF6D4C41),
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      "About CoworkHub",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF3E2723),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 10),
+                Text(
+                  "CoworkHub provides modern workspaces designed for productivity, collaboration, and flexible bookings.",
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF6B7280),
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
           const SizedBox(height: 24),
         ],
       ),

@@ -291,8 +291,7 @@ class HelpSupportScreen extends StatelessWidget {
                                         Expanded(child: _contactCard(Icons.mail_outline_rounded, "Email Us", "support@coworkhub.com", "We'll reply within 24 hours")),
                                         const SizedBox(width: 10),
                                         Expanded(child: _contactCard(Icons.phone_outlined, "Call Us", "+90 212 123 4567", "Mon - Fri, 9AM - 6PM")),
-                                        const SizedBox(width: 10),
-                                        Expanded(child: _contactCard(Icons.chat_bubble_outline_rounded, "Live Chat", "Chat with our team", "Available in app")),
+
                                       ],
                                     ),
                                     const SizedBox(height: 20),

@@ -37,9 +37,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadStats() async {
     final bookings = await bookingService.getUserBookings(widget.userId);
+    print(bookings);
     final memberships = await membershipService.getUserMemberships(widget.userId);
     final plans = await membershipService.getPlans();
-
     final active = memberships.firstWhere(
           (m) => m['status'] == 'Active',
       orElse: () => {},
@@ -56,9 +56,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     setState(() {
       totalBookings = bookings.length;
-      activeBookings = bookings
-          .where((b) => b['booking_status'] == 'Active')
-          .length;
+      activeBookings = bookings.length;
       membershipStatus = planName;
       isLoading = false;
     });
@@ -110,7 +108,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    membershipStatus == 'Active'
+                    membershipStatus != 'No Plan'
                         ? 'Active Member'
                         : 'No Active Plan',
                     style: const TextStyle(
@@ -133,8 +131,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       _VerticalDivider(),
                       _StatItem(
-                        value: membershipStatus == 'Active' ? '✓' : '✗',
-                        label: 'Member',
+                        value: membershipStatus != 'No Plan' ? '✓' : '✗',
+                        label: membershipStatus,
+
                       ),
                     ],
                   ),

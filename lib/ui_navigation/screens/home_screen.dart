@@ -315,7 +315,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _category(Icons.groups_rounded, "Meeting", "Meeting"),
                 _category(Icons.present_to_all_rounded, "Conference", "Conference"),
                 _category(Icons.lock_outline_rounded, "Dedicated", "Dedicated Room"),
-                _category(Icons.explore_rounded, "Discover Spaces", "All"),
+
               ],
             ),
           ),
@@ -388,7 +388,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             // Available Now
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16),

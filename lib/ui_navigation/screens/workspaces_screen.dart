@@ -171,10 +171,7 @@ class _WorkspacesScreenState extends State<WorkspacesScreen> {
                     "${filteredWorkspaces.length} workspaces found",
                     style: const TextStyle(color: Color(0xFF8D6E63), fontSize: 12),
                   ),
-                  const Text(
-                    "Sort by: Recommended",
-                    style: TextStyle(color: Color(0xFF8D6E63), fontSize: 12),
-                  ),
+
                 ],
               ),
             ),

@@ -5,6 +5,8 @@ import 'package:coworkhub/payment_feedback_logic/widgets/rating_stars.dart';
 import 'package:coworkhub/services/workspace_service.dart';
 import 'package:coworkhub/payment_feedback_logic/services/feedback_service.dart';
 import 'package:coworkhub/ui_navigation/helper/workspace_helpers.dart';
+import 'package:coworkhub/services/favourite_service.dart';
+
 class WorkspaceDetailsScreen extends StatefulWidget {
   final int userId;
   final Map<String, dynamic> workspace;
@@ -24,11 +26,13 @@ class WorkspaceDetailsScreen extends StatefulWidget {
 class _WorkspaceDetailsScreenState extends State<WorkspaceDetailsScreen> {
   final WorkspaceService workspaceService = WorkspaceService();
   final FeedbackService feedbackService = FeedbackService();
+  final FavoriteService _favoriteService = FavoriteService();
   double rating = 0.0;
   int reviewCount = 0;
   List<Map<String, dynamic>> _amenities = [];
   List<Map<String, dynamic>> _reviews = [];
   bool _isLoading = true;
+  bool _isFavorite = false;
 
   @override
   void initState() {
@@ -44,17 +48,30 @@ class _WorkspaceDetailsScreenState extends State<WorkspaceDetailsScreen> {
           widget.workspace['resource_id']);
       final reviews = await feedbackService.getReviews(
           widget.workspace['resource_id']);
+      final isFav = await _favoriteService.isFavorite(
+          widget.userId, widget.workspace['resource_id']);
 
       setState(() {
         rating = avgRating;
         reviewCount = reviews.length;
         _reviews = reviews;
         _amenities = allAmenities;
+        _isFavorite = isFav;
         _isLoading = false;
       });
     } catch (e) {
       setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _toggleFavorite() async {
+    final resourceId = widget.workspace['resource_id'] as int;
+    final newStatus = await _favoriteService.toggleFavorite(
+      widget.userId,
+      resourceId,
+      _isFavorite,
+    );
+    setState(() => _isFavorite = newStatus);
   }
 
   IconData _getAmenityIcon(String type) {
@@ -128,6 +145,22 @@ class _WorkspaceDetailsScreenState extends State<WorkspaceDetailsScreen> {
                   ),
                 ),
               ),
+              Positioned(
+                top: 40,
+                right: 16,
+                child: CircleAvatar(
+                  backgroundColor: Colors.white,
+                  child: IconButton(
+                    icon: Icon(
+                      _isFavorite
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_border_rounded,
+                      color: _isFavorite ? Colors.pinkAccent : const Color(0xFF6D4C41),
+                    ),
+                    onPressed: _toggleFavorite,
+                  ),
+                ),
+              ),
             ],
           ),
 
@@ -142,7 +175,6 @@ class _WorkspaceDetailsScreenState extends State<WorkspaceDetailsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Name & Price
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -185,7 +217,6 @@ class _WorkspaceDetailsScreenState extends State<WorkspaceDetailsScreen> {
                     ),
                     const SizedBox(height: 12),
 
-                    // Location & Rating
                     Wrap(
                       spacing: 12,
                       runSpacing: 4,
@@ -224,7 +255,6 @@ class _WorkspaceDetailsScreenState extends State<WorkspaceDetailsScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Info Chips
                     Wrap(
                       spacing: 6,
                       runSpacing: 8,
@@ -235,7 +265,6 @@ class _WorkspaceDetailsScreenState extends State<WorkspaceDetailsScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // About
                     const Text("About this room",
                         style: TextStyle(
                             fontSize: 16,
@@ -249,7 +278,6 @@ class _WorkspaceDetailsScreenState extends State<WorkspaceDetailsScreen> {
                             height: 1.4)),
                     const SizedBox(height: 24),
 
-                    // Amenities
                     const Text("Amenities",
                         style: TextStyle(
                             fontSize: 16,
@@ -283,7 +311,6 @@ class _WorkspaceDetailsScreenState extends State<WorkspaceDetailsScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Room Details
                     const Text("Room details",
                         style: TextStyle(
                             fontSize: 16,
@@ -294,7 +321,6 @@ class _WorkspaceDetailsScreenState extends State<WorkspaceDetailsScreen> {
                     _detailRow("Capacity", "$capacity people"),
                     const SizedBox(height: 24),
 
-                    // Reviews
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -344,7 +370,6 @@ class _WorkspaceDetailsScreenState extends State<WorkspaceDetailsScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Book Now Button
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(

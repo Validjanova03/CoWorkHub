@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:coworkhub/services/favourite_service.dart';
 import 'package:coworkhub/services/workspace_service.dart';
 import 'package:coworkhub/ui_navigation/screens/workspaces_screen.dart';
 import 'package:coworkhub/ui_navigation/screens/workspace_details_screen.dart';
@@ -32,8 +33,10 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Map<String, dynamic>> _allWorkspaces = [];
   bool _isLoading = true;
   String _greeting = "";
-  Map<int, double> _workspaceRatings = {}; // ← add this
+  Map<int, double> _workspaceRatings = {};
   final FeedbackService feedbackService = FeedbackService();
+  final FavoriteService _favoriteService = FavoriteService();
+  Map<int, bool> _favoriteStatus = {};
 
   IconData _getGreetingIcon() {
     int hour = DateTime.now().hour;
@@ -64,7 +67,6 @@ class _HomeScreenState extends State<HomeScreen> {
       final workspaceService = WorkspaceService();
       _allWorkspaces = await workspaceService.getWorkspaces();
 
-      // Load ratings
       for (var workspace in _allWorkspaces) {
         int resourceId = workspace['resource_id'];
         _workspaceRatings[resourceId] =
@@ -72,10 +74,20 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       setState(() => _isLoading = false);
+      await _loadFavorites();
     } catch (e) {
       setState(() => _isLoading = false);
       debugPrint('Error: $e');
     }
+  }
+
+  Future<void> _loadFavorites() async {
+    for (var workspace in _allWorkspaces) {
+      int resourceId = workspace['resource_id'];
+      _favoriteStatus[resourceId] =
+      await _favoriteService.isFavorite(widget.userId, resourceId);
+    }
+    setState(() {});
   }
 
   String getInitials() {
@@ -100,7 +112,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<Map<String, dynamic>> get _featuredWorkspaces {
     final types = ['Hot Desk', 'Dedicated Room', 'Meeting Room', 'Conference Hall'];
-    return types.map((type) => _allWorkspaces
+    return types
+        .map((type) => _allWorkspaces
         .firstWhere((w) => w['space_type'] == type, orElse: () => {}))
         .where((w) => w.isNotEmpty)
         .toList();
@@ -152,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final List<Widget> pages = [
       _buildHomePage(),
       WorkspacesScreen(userId: widget.userId, userName: widget.userName),
-      MyBookingsScreen(userId: widget.userId, userName: widget.userName,),
+      MyBookingsScreen(userId: widget.userId, userName: widget.userName),
       PaymentHistoryScreen(userId: widget.userId),
       ProfileScreen(
         userId: widget.userId,
@@ -173,7 +186,12 @@ class _HomeScreenState extends State<HomeScreen> {
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
         elevation: 8,
-        onTap: (index) => setState(() => _currentIndex = index),
+        onTap: (index) async {
+
+          setState(() => _currentIndex = index);
+
+          await _loadFavorites();
+        },
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
@@ -229,7 +247,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                       children: [
                         Text(_greeting,
-                            style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                            style: const TextStyle(
+                                color: Colors.white70, fontSize: 13)),
                         const SizedBox(width: 6),
                         Icon(_getGreetingIcon(),
                             color: Colors.amber.shade400, size: 14),
@@ -244,10 +263,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 4),
                     const Row(
                       children: [
-                        Icon(Icons.location_on_rounded, color: Colors.white70, size: 14),
+                        Icon(Icons.location_on_rounded,
+                            color: Colors.white70, size: 14),
                         SizedBox(width: 4),
                         Text("Istanbul, Kadiköy",
-                            style: TextStyle(color: Colors.white70, fontSize: 12)),
+                            style:
+                            TextStyle(color: Colors.white70, fontSize: 12)),
                       ],
                     ),
                   ],
@@ -258,9 +279,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: const Icon(Icons.notifications_outlined,
                           color: Colors.white, size: 26),
                       onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(
-                          builder: (_) => const NotificationsScreen(),
-                        ));
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const NotificationsScreen(),
+                            ));
                       },
                     ),
                     Positioned(
@@ -315,7 +338,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 _category(Icons.groups_rounded, "Meeting", "Meeting"),
                 _category(Icons.present_to_all_rounded, "Conference", "Conference"),
                 _category(Icons.lock_outline_rounded, "Dedicated", "Dedicated Room"),
-
               ],
             ),
           ),
@@ -386,7 +408,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Available Now
+            // Discover Spaces
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -437,19 +459,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 ? Padding(
               padding: const EdgeInsets.all(32),
               child: Column(
-                children: [
-                  const Icon(Icons.search_off,
-                      size: 64, color: Color(0xFF8D6E63)),
-                  const SizedBox(height: 16),
-                  const Text("No workspaces found",
+                children: const [
+                  Icon(Icons.search_off, size: 64, color: Color(0xFF8D6E63)),
+                  SizedBox(height: 16),
+                  Text("No workspaces found",
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                          fontSize: 16, color: Color(0xFF8D6E63))),
-                  const SizedBox(height: 8),
-                  const Text("Try \"Hot Desk\" or \"Meeting Room\"",
+                      style: TextStyle(fontSize: 16, color: Color(0xFF8D6E63))),
+                  SizedBox(height: 8),
+                  Text("Try \"Hot Desk\" or \"Meeting Room\"",
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                          fontSize: 12, color: Color(0xFF8D6E63))),
+                      style: TextStyle(fontSize: 12, color: Color(0xFF8D6E63))),
                 ],
               ),
             )
@@ -462,8 +481,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   _availableCard(_filteredWorkspaces[index]),
             ),
           ],
-
-
 
           const SizedBox(height: 24),
         ],
@@ -495,12 +512,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // One card method for both Featured and Popular
   Widget _workspaceCard(Map<String, dynamic> item) {
     String name = item['name'] ?? 'Workspace';
     double rate = (item['rate'] ?? 0).toDouble();
     double rating = _workspaceRatings[item['resource_id']] ?? 0.0;
     bool isAvailable = item['availability_status'] == 'Available';
+    final resourceId = item['resource_id'] as int;
+    final isFav = _favoriteStatus[resourceId] ?? false;
 
     return GestureDetector(
       onTap: () => _navigateToDetails(item),
@@ -516,23 +534,57 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
-              ),
-              child: Image.asset(
-                WorkspaceHelpers.getImage(name),
-                height: 100,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  height: 100,
-                  color: const Color(0xFFE8D5D0),
-                  child: const Icon(Icons.meeting_room_rounded,
-                      size: 40, color: Color(0xFF8D6E63)),
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
+                  child: Image.asset(
+                    WorkspaceHelpers.getImage(name),
+                    height: 100,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      height: 100,
+                      color: const Color(0xFFE8D5D0),
+                      child: const Icon(Icons.meeting_room_rounded,
+                          size: 40, color: Color(0xFF8D6E63)),
+                    ),
+                  ),
                 ),
-              ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: GestureDetector(
+                    onTap: () async {
+                      final newStatus = await _favoriteService.toggleFavorite(
+                        widget.userId,
+                        resourceId,
+                        isFav,
+                      );
+                      setState(() {
+                        _favoriteStatus[resourceId] = newStatus;
+                      });
+                    },
+                    child: Icon(
+                      isFav
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_border_rounded,
+                      color: isFav ? Colors.pinkAccent : Colors.white,
+                      size: 24,
+                      shadows: const [
+                        Shadow(
+                          blurRadius: 6,
+                          color: Colors.black45,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
             Padding(
               padding: const EdgeInsets.all(8),
@@ -543,13 +595,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      if (rating > 0)
-                        RatingStars(rating: rating, size: 12)
-                      else
-                        const Text(
-                          "No reviews yet",
-                          style: TextStyle(fontSize: 9, color: Color(0xFF8D6E63)),
-                        ),
+                      RatingStars(rating: rating, size: 12),
                       if (isAvailable)
                         Text(
                           "Available",
@@ -638,7 +684,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF6D4C41),
-              foregroundColor: Colors.white, //  fixes text color
+              foregroundColor: Colors.white,
             ),
             child: const Text("View Plans"),
           ),
@@ -651,6 +697,9 @@ class _HomeScreenState extends State<HomeScreen> {
     String name = item['name'] ?? 'Workspace';
     double rate = (item['rate'] ?? 0).toDouble();
     bool isAvailable = item['availability_status'] == 'Available';
+    double rating = _workspaceRatings[item['resource_id']] ?? 0.0;
+    final resourceId = item['resource_id'] as int;
+    final isFav = _favoriteStatus[resourceId] ?? false;
 
     return GestureDetector(
       onTap: () => _navigateToDetails(item),
@@ -664,21 +713,78 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Row(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.asset(
-                WorkspaceHelpers.getImage(name),
-                width: 80,
-                height: 80,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  width: 120,
-                  height: 120,
-                  color: const Color(0xFFE8D5D0),
-                  child: const Icon(Icons.meeting_room,
-                      size: 50, color: Color(0xFF8D6E63)),
+            Stack(
+              children: [
+
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+
+                  child: Image.asset(
+                    WorkspaceHelpers.getImage(name),
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.cover,
+
+                    errorBuilder:
+                        (context, error, stackTrace) =>
+                        Container(
+                          width: 120,
+                          height: 120,
+                          color: const Color(0xFFE8D5D0),
+
+                          child: const Icon(
+                            Icons.meeting_room,
+                            size: 50,
+                            color: Color(0xFF8D6E63),
+                          ),
+                        ),
+                  ),
                 ),
-              ),
+
+                Positioned(
+                  top: 6,
+                  right: 6,
+
+                  child: GestureDetector(
+
+                    onTap: () async {
+
+                      final newStatus =
+                      await _favoriteService.toggleFavorite(
+                        widget.userId,
+                        resourceId,
+                        isFav,
+                      );
+
+                      setState(() {
+                        _favoriteStatus[resourceId] =
+                            newStatus;
+                      });
+                    },
+
+                    child: Icon(
+
+                      isFav
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_border_rounded,
+
+                      color: isFav
+                          ? Colors.pinkAccent
+                          : Colors.white,
+
+                      size: 22,
+
+                      shadows: const [
+                        Shadow(
+                          blurRadius: 6,
+                          color: Colors.black45,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -691,6 +797,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           fontSize: 15,
                           color: Color(0xFF3E2723))),
                   const SizedBox(height: 6),
+                  const SizedBox(height: 4),
+                  RatingStars(rating: rating, size: 14),
                   Row(
                     children: [
                       const Icon(Icons.location_on_outlined,
@@ -735,7 +843,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             onPressed: () => _navigateToDetails(item),
                             child: const Text("Book Now",
-                                style: TextStyle(fontSize: 11, color: Colors.white)),
+                                style: TextStyle(
+                                    fontSize: 11, color: Colors.white)),
                           ),
                         ],
                       ),

@@ -9,6 +9,7 @@ class DBHelper {
     _db = await initDB();
     return _db!;
   }
+
   Future<Map<String, dynamic>?> loginUser(String email, String password) async {
     final dbClient = await db;
     final result = await dbClient.query(
@@ -16,21 +17,22 @@ class DBHelper {
       where: 'email = ? AND password = ?',
       whereArgs: [email, password],
     );
-
     if (result.isNotEmpty) {
       return result.first;
     }
     return null;
   }
+
   Future<Database> initDB() async {
     String path = join(await getDatabasesPath(), 'app.db');
     return await openDatabase(
       path,
-      version: 10,
+      version: 12,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
   }
+
   Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE users (
@@ -108,18 +110,18 @@ class DBHelper {
     ''');
 
     await db.execute('''
-CREATE TABLE invoice (
-  invoice_id INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_id INTEGER,
-  booking_id INTEGER,
-  issue_date TEXT,
-  due_date TEXT,
-  discount REAL,
-  total REAL,
-  status TEXT,
-  FOREIGN KEY (user_id) REFERENCES users(user_id),
-  FOREIGN KEY (booking_id) REFERENCES booking(booking_id)
-)
+      CREATE TABLE invoice (
+        invoice_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        booking_id INTEGER,
+        issue_date TEXT,
+        due_date TEXT,
+        discount REAL,
+        total REAL,
+        status TEXT,
+        FOREIGN KEY (user_id) REFERENCES users(user_id),
+        FOREIGN KEY (booking_id) REFERENCES booking(booking_id)
+      )
     ''');
 
     await db.execute('''
@@ -146,6 +148,16 @@ CREATE TABLE invoice (
       )
     ''');
 
+    await db.execute('''
+      CREATE TABLE favorites (
+        favorite_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        resource_id INTEGER,
+        FOREIGN KEY (user_id) REFERENCES users(user_id),
+        FOREIGN KEY (resource_id) REFERENCES resources(resource_id)
+      )
+    ''');
+
     await db.insert('plans', {
       'plan_name': 'Weekly',
       'price': 70.0,
@@ -166,7 +178,6 @@ CREATE TABLE invoice (
       'payment_periodicity': 'Yearly',
       'discount_applied': 15,
     });
-
 
     await db.insert('resources', {
       'name': 'Color Printer',
@@ -199,11 +210,6 @@ CREATE TABLE invoice (
       'unit_type': 'Hour',
       'rate': 5,
     });
-
-
-
-
-
 
     // ================= WORKSPACES =================
 
@@ -255,25 +261,10 @@ CREATE TABLE invoice (
       await db.insert('workspace', {'resource_id': id, 'space_type': 'Conference Hall', 'capacity': 30});
     }
 
-    await db.insert('amenity', {
-      'resource_id': 1,
-      'amenity_type': 'Printer',
-    });
-
-    await db.insert('amenity', {
-      'resource_id': 2,
-      'amenity_type': 'Projector',
-    });
-
-    await db.insert('amenity', {
-      'resource_id': 3,
-      'amenity_type': 'Coffee machine',
-    });
-
-    await db.insert('amenity', {
-      'resource_id': 4,
-      'amenity_type': 'Locker',
-    });
+    await db.insert('amenity', {'resource_id': 1, 'amenity_type': 'Printer'});
+    await db.insert('amenity', {'resource_id': 2, 'amenity_type': 'Projector'});
+    await db.insert('amenity', {'resource_id': 3, 'amenity_type': 'Coffee machine'});
+    await db.insert('amenity', {'resource_id': 4, 'amenity_type': 'Locker'});
 
     await db.insert('invoice', {
       'user_id': null,
@@ -293,9 +284,7 @@ CREATE TABLE invoice (
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-
     if (oldVersion < 10) {
-
       try {
         await db.execute('ALTER TABLE invoice ADD COLUMN booking_id INTEGER');
       } catch (e) {}
@@ -303,9 +292,21 @@ CREATE TABLE invoice (
       try {
         await db.execute('ALTER TABLE workspace ADD COLUMN capacity INTEGER');
       } catch (e) {}
-
     }
 
+    if (oldVersion < 12) {
+      try {
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS favorites (
+            favorite_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            resource_id INTEGER,
+            FOREIGN KEY (user_id) REFERENCES users(user_id),
+            FOREIGN KEY (resource_id) REFERENCES resources(resource_id)
+          )
+        ''');
+      } catch (e) {}
+    }
   }
 
   Future<int> insertUser(Map<String, dynamic> user) async {
@@ -417,9 +418,6 @@ CREATE TABLE invoice (
     return await dbClient.insert('feedback', feedback);
   }
 
-  //bahar work
-// In DBHelper class
-
   Future<Map<String, dynamic>?> getBookingById(int bookingId) async {
     final dbClient = await db;
     List<Map<String, dynamic>> result = await dbClient.query(
@@ -483,18 +481,19 @@ CREATE TABLE invoice (
   Future<List<Map<String, dynamic>>> getPaymentsWithDetailsByUser(int userId) async {
     final dbClient = await db;
     return await dbClient.rawQuery('''
-    SELECT p.*, i.total, i.booking_id, i.issue_date
-    FROM payment p
-    JOIN invoice i ON p.invoice_id = i.invoice_id
-    WHERE i.user_id = ?
-    ORDER BY p.payment_date DESC
-  ''', [userId]);
+      SELECT p.*, i.total, i.booking_id, i.issue_date
+      FROM payment p
+      JOIN invoice i ON p.invoice_id = i.invoice_id
+      WHERE i.user_id = ?
+      ORDER BY p.payment_date DESC
+    ''', [userId]);
   }
 
   Future<List<Map<String, dynamic>>> getAllResources() async {
     final dbClient = await db;
     return await dbClient.query('resources');
   }
+
   Future<int> cancelMembership(int membershipId) async {
     final dbClient = await db;
     return await dbClient.update(
@@ -504,40 +503,39 @@ CREATE TABLE invoice (
       whereArgs: [membershipId],
     );
   }
- // Maftuna's Part
+
   Future<List<Map<String, dynamic>>> checkConflictingBookings(
       int resourceId,
       String startTime,
       String endTime,
       ) async {
     final dbClient = await db;
-
     return await dbClient.query(
       'booking',
       where: '''
-      resource_id = ? AND booking_status = ? AND
-      NOT (end_time <= ? OR start_time >= ?)
-    ''',
+        resource_id = ? AND booking_status = ? AND
+        NOT (end_time <= ? OR start_time >= ?)
+      ''',
       whereArgs: [resourceId, 'Active', startTime, endTime],
     );
   }
+
   Future<List<Map<String, dynamic>>> getBookingsWithResourceByUser(int userId) async {
     final dbClient = await db;
-
     return await dbClient.rawQuery('''
-    SELECT 
-      b.booking_id,
-      b.start_time,
-      b.end_time,
-      b.booking_status,
-      r.name AS resource_name
-    FROM booking b
-    JOIN resources r ON b.resource_id = r.resource_id
-    WHERE b.user_id = ?
-    ORDER BY b.start_time DESC
-  ''', [userId]);
+      SELECT 
+        b.booking_id,
+        b.start_time,
+        b.end_time,
+        b.booking_status,
+        r.name AS resource_name
+      FROM booking b
+      JOIN resources r ON b.resource_id = r.resource_id
+      WHERE b.user_id = ?
+      ORDER BY b.start_time DESC
+    ''', [userId]);
   }
-  //get all bookings for specific room
+
   Future<List<Map<String, dynamic>>> getBookingsByResource(int resourceId) async {
     final dbClient = await db;
     return await dbClient.query(
@@ -548,5 +546,41 @@ CREATE TABLE invoice (
     );
   }
 
-  // Until here
+  Future<void> addFavorite(int userId, int resourceId) async {
+    final dbClient = await db;
+    await dbClient.insert('favorites', {
+      'user_id': userId,
+      'resource_id': resourceId,
+    });
+  }
+
+  Future<void> removeFavorite(int userId, int resourceId) async {
+    final dbClient = await db;
+    await dbClient.delete(
+      'favorites',
+      where: 'user_id = ? AND resource_id = ?',
+      whereArgs: [userId, resourceId],
+    );
+  }
+
+  Future<bool> isFavorite(int userId, int resourceId) async {
+    final dbClient = await db;
+    final result = await dbClient.query(
+      'favorites',
+      where: 'user_id = ? AND resource_id = ?',
+      whereArgs: [userId, resourceId],
+    );
+    return result.isNotEmpty;
+  }
+
+  Future<List<Map<String, dynamic>>> getFavorites(int userId) async {
+    final dbClient = await db;
+    return await dbClient.rawQuery('''
+      SELECT *
+      FROM favorites f
+      JOIN resources r ON f.resource_id = r.resource_id
+      JOIN workspace w ON r.resource_id = w.resource_id
+      WHERE f.user_id = ?
+    ''', [userId]);
+  }
 }

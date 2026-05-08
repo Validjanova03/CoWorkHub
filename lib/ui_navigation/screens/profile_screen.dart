@@ -5,6 +5,8 @@ import 'package:coworkhub/ui_navigation/screens/membership_screen.dart';
 import 'package:coworkhub/ui_navigation/screens/about_screen.dart';
 import 'package:coworkhub/ui_navigation/screens/help_support_screen.dart';
 import 'package:coworkhub/ui_navigation/screens/notification_screen.dart';
+import 'package:coworkhub/ui_navigation/screens/favourites_screen.dart';
+
 class ProfileScreen extends StatefulWidget {
   final int userId;
   final String userName;
@@ -61,6 +63,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       isLoading = false;
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -133,7 +136,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       _StatItem(
                         value: membershipStatus != 'No Plan' ? '✓' : '✗',
                         label: membershipStatus,
-
                       ),
                     ],
                   ),
@@ -149,12 +151,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
               label: 'Membership Plans',
               trailing: membershipStatus,
               onTap: () {
-                Navigator.push(context, MaterialPageRoute(
-                  builder: (_) => MembershipPlansScreen(
-                    userId: widget.userId,
-                    userName: widget.userName,
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => MembershipPlansScreen(
+                      userId: widget.userId,
+                      userName: widget.userName,
+                    ),
                   ),
-                )).then((_) => _loadStats());
+                ).then((_) => _loadStats());
+              },
+            ),
+            _MenuItem(
+              icon: Icons.favorite_rounded,
+              label: 'Favourites',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => FavouritesScreen(
+                      userId: widget.userId,
+                      userName: widget.userName,
+                    ),
+                  ),
+                ).then((_) {
+                  Navigator.pop(context, true);
+                });
 
               },
             ),
@@ -186,7 +208,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 );
               },
             ),
-            _MenuItem( icon: Icons.info_outline_rounded, label: 'About CoworkHub', onTap: () { Navigator.push( context, MaterialPageRoute( builder: (_) => const AboutScreen(), ), ); }, ), const SizedBox(height: 24),
+            _MenuItem(
+              icon: Icons.info_outline_rounded,
+              label: 'About CoworkHub',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const AboutScreen(),
+                  ),
+                );
+              },
+            ),
             const SizedBox(height: 24),
 
             // ── Logout ──

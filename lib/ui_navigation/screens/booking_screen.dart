@@ -5,6 +5,7 @@ import 'package:coworkhub/payment_feedback_logic/services/payment_service.dart';
 import 'package:coworkhub/ui_navigation/screens/home_screen.dart';
 import 'package:coworkhub/ui_navigation/helper/workspace_helpers.dart';
 import 'package:coworkhub/ui_navigation/helper/snackbar_helper.dart';
+
 class BookingScreen extends StatefulWidget {
   final int userId;
   final int resourceId;
@@ -47,7 +48,6 @@ class _BookingScreenState extends State<BookingScreen> {
     _loadRoomBookings();
   }
 
-
   Future<void> _selectDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -87,9 +87,9 @@ class _BookingScreenState extends State<BookingScreen> {
       int diffMinutes = endMinutes - startMinutes;
       if (diffMinutes < 0) diffMinutes += 24 * 60;
       if (diffMinutes < 60) {
-         _durationHours = 0;
+        _durationHours = 0;
       } else {
-        _durationHours = diffMinutes / 60; //  decimal
+        _durationHours = diffMinutes / 60;
       }
       setState(() {});
     }
@@ -132,7 +132,7 @@ class _BookingScreenState extends State<BookingScreen> {
         setState(() => _isLoading = false);
         return;
       }
-      //lyan work
+
       bool available = await bookingService.isTimeSlotAvailable(
         resourceId: widget.resourceId,
         start: startDateTime,
@@ -144,14 +144,13 @@ class _BookingScreenState extends State<BookingScreen> {
         setState(() => _isLoading = false);
         return;
       }
-      var result = await bookingService.createBooking(
 
+      var result = await bookingService.createBooking(
         userId: widget.userId,
         resourceId: widget.resourceId,
         startDateTime: startDateTime,
         endDateTime: endDateTimeAdjusted,
       );
-
 
       if (result is String) {
         if (!mounted) return;
@@ -161,34 +160,85 @@ class _BookingScreenState extends State<BookingScreen> {
       }
 
       final bookingId = result as int;
-      await paymentService.generateInvoiceForBooking(
-          bookingId, widget.userId);
+      await paymentService.generateInvoiceForBooking(bookingId, widget.userId);
 
       if (!mounted) return;
       setState(() => _isLoading = false);
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => PaymentScreen(
-            bookingId: bookingId,
-            userId: widget.userId,
-            userName: widget.userName,
-            resourceName: widget.resourceName,
-            date: _formatDate(),
-            startTime: _startTime,
-            endTime: _endTime,
-            capacity: widget.capacity,
-            total: _totalPrice,
-          ),
-        ),
-      );
-
+      _showPaymentDialog(bookingId);
 
     } catch (e) {
       _showError("Error creating booking: $e");
       setState(() => _isLoading = false);
     }
+  }
+
+  void _showPaymentDialog(int bookingId) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          "Booking Created!",
+          style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF3E2723)),
+        ),
+        content: const Text(
+          "Would you like to proceed to payment?\n\nNote: Your booking will be automatically cancelled if not paid within 10 minutes.",
+          style: TextStyle(fontSize: 13, color:  Colors.black87),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => HomeScreen(
+                    userId: widget.userId,
+                    userName: widget.userName,
+                  ),
+                ),
+              );
+            },
+            child: const Text(
+              "Pay Later",
+              style: TextStyle(color: Colors.black87),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => PaymentScreen(
+                    bookingId: bookingId,
+                    userId: widget.userId,
+                    userName: widget.userName,
+                    resourceName: widget.resourceName,
+                    date: _formatDate(),
+                    startTime: _startTime,
+                    endTime: _endTime,
+                    capacity: widget.capacity,
+                    total: _totalPrice,
+                  ),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6D4C41),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text(
+              "Proceed to Payment",
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showError(String message) {
@@ -199,6 +249,7 @@ class _BookingScreenState extends State<BookingScreen> {
     final data = await bookingService.getBookingsByResource(widget.resourceId);
     setState(() => _roomBookings = data);
   }
+
   String _formatDateTime(String dateTime) {
     try {
       final dt = DateTime.parse(dateTime);
@@ -331,7 +382,7 @@ class _BookingScreenState extends State<BookingScreen> {
             ),
             const SizedBox(height: 24),
 
-// ── Booked Times ──
+            // Already Booked Times
             if (_roomBookings.isNotEmpty) ...[
               const Text(
                 "Already Booked Times:",
@@ -370,8 +421,6 @@ class _BookingScreenState extends State<BookingScreen> {
               ),
               const SizedBox(height: 16),
             ],
-
-
 
             // 1. Select Date
             const Text("1. Select Date",
@@ -562,7 +611,7 @@ class _BookingScreenState extends State<BookingScreen> {
                   const SizedBox(height: 8),
                   _summaryRow(
                     "Base Price",
-                    "\$${widget.rate.toStringAsFixed(0)} x ${_durationHours.toStringAsFixed(1)} hours", // ✅
+                    "\$${widget.rate.toStringAsFixed(0)} x ${_durationHours.toStringAsFixed(1)} hours",
                   ),
                   const Divider(height: 24),
                   _summaryRow(

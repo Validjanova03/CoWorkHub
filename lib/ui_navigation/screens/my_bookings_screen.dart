@@ -37,7 +37,6 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       isLoading = false;
     });
 
-    // Check auto-cancel for each active booking
     for (final booking in data) {
       if (booking['booking_status'] == 'Active') {
         _checkAutoCancelBooking(booking);
@@ -45,26 +44,15 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     }
   }
 
-  // Auto-cancel if unpaid after 10 minutes of booking creation
   void _checkAutoCancelBooking(Map<String, dynamic> booking) {
     final bookingId = booking['booking_id'] as int;
-    final isPaid = booking['is_paid'] == 1 || booking['is_paid'] == true;
-
-    if (isPaid) return;
-
-    // Use start_time as the booking creation reference
-    final startTime = DateTime.tryParse(booking['start_time'] ?? '');
-    if (startTime == null) return;
-
     final now = DateTime.now();
     final createdAt = DateTime.tryParse(booking['created_at'] ?? '') ?? now;
     final deadline = createdAt.add(const Duration(minutes: 10));
 
     if (now.isAfter(deadline)) {
-      // Already past deadline, cancel immediately
       _autoCancelBooking(bookingId);
     } else {
-      // Schedule cancel at deadline
       final remaining = deadline.difference(now);
       Future.delayed(remaining, () {
         if (mounted) {
@@ -84,7 +72,6 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     );
   }
 
-  // Cancel with confirmation dialog
   Future<void> _cancelBooking(int bookingId) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -96,7 +83,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         ),
         content: const Text(
           "Are you sure you want to cancel this booking? This action cannot be undone.",
-          style: TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
+          style: TextStyle(fontSize: 13, color: Colors.black87),
         ),
         actions: [
           TextButton(
@@ -166,10 +153,9 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'active':
+        return Colors.orange;
       case 'confirmed':
         return Colors.green;
-      case 'pending':
-        return Colors.orange;
       case 'cancelled':
         return Colors.red;
       default:
@@ -236,10 +222,11 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                 itemCount: _filteredBookings.length,
                 itemBuilder: (context, index) {
                   final booking = _filteredBookings[index];
-                  final isFirst = index == 0 && _selectedTab == 0;
-                  return isFirst
-                      ? _featuredBookingCard(booking)
-                      : _bookingCard(booking);
+                  if (_selectedTab == 0) {
+                    return _upcomingCard(booking);
+                  } else {
+                    return _bookingCard(booking);
+                  }
                 },
               ),
             ),
@@ -274,7 +261,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     );
   }
 
-  Widget _featuredBookingCard(Map<String, dynamic> booking) {
+  // Big card for Upcoming tab — all Active bookings
+  Widget _upcomingCard(Map<String, dynamic> booking) {
     final status = booking['booking_status'] ?? '';
     final resourceName = booking['resource_name'] ?? 'Workspace';
     return Container(
@@ -282,16 +270,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Upcoming Booking",
-            style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF3E2723)),
-          ),
-          const SizedBox(height: 12),
-
-          // Auto-cancel warning banner
+          // Orange warning banner
           Container(
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -307,8 +286,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                 Expanded(
                   child: Text(
                     "Please complete payment within 10 minutes or your booking will be automatically cancelled.",
-                    style: TextStyle(
-                        fontSize: 11, color: Colors.orange.shade800),
+                    style: TextStyle(fontSize: 11, color: Colors.orange.shade800),
                   ),
                 ),
               ],
@@ -447,23 +425,12 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
               ],
             ),
           ),
-
-          if (_filteredBookings.length > 1) ...[
-            const SizedBox(height: 20),
-            const Text(
-              "All Bookings",
-              style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF3E2723)),
-            ),
-            const SizedBox(height: 12),
-          ],
         ],
       ),
     );
   }
 
+  // Small card for Completed and Cancelled tabs
   Widget _bookingCard(Map<String, dynamic> booking) {
     final status = booking['booking_status'] ?? '';
     final resourceName = booking['resource_name'] ?? 'Workspace';

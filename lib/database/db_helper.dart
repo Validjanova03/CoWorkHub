@@ -27,7 +27,7 @@ class DBHelper {
     String path = join(await getDatabasesPath(), 'app.db');
     return await openDatabase(
       path,
-      version: 13, // bumped from 12
+      version: 14, // bumped from 13
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );

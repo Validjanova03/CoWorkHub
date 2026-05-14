@@ -27,7 +27,7 @@ class DBHelper {
     String path = join(await getDatabasesPath(), 'app.db');
     return await openDatabase(
       path,
-      version: 12,
+      version: 13, // bumped from 12
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -104,6 +104,7 @@ class DBHelper {
         start_time TEXT,
         end_time TEXT,
         booking_status TEXT,
+        created_at TEXT,
         FOREIGN KEY (user_id) REFERENCES users(user_id),
         FOREIGN KEY (resource_id) REFERENCES resources(resource_id)
       )
@@ -288,7 +289,6 @@ class DBHelper {
       try {
         await db.execute('ALTER TABLE invoice ADD COLUMN booking_id INTEGER');
       } catch (e) {}
-
       try {
         await db.execute('ALTER TABLE workspace ADD COLUMN capacity INTEGER');
       } catch (e) {}
@@ -305,6 +305,12 @@ class DBHelper {
             FOREIGN KEY (resource_id) REFERENCES resources(resource_id)
           )
         ''');
+      } catch (e) {}
+    }
+
+    if (oldVersion < 13) {
+      try {
+        await db.execute('ALTER TABLE booking ADD COLUMN created_at TEXT');
       } catch (e) {}
     }
   }
@@ -528,6 +534,7 @@ class DBHelper {
         b.start_time,
         b.end_time,
         b.booking_status,
+        b.created_at,
         r.name AS resource_name
       FROM booking b
       JOIN resources r ON b.resource_id = r.resource_id

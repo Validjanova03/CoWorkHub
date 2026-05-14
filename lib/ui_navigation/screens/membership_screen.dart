@@ -337,7 +337,6 @@ class _MembershipPlansScreenState extends State<MembershipPlansScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-
                 // Pay Now Button
                 SizedBox(
                   width: double.infinity,
@@ -513,13 +512,66 @@ class _MembershipPlansScreenState extends State<MembershipPlansScreen> {
                   ),
                   TextButton(
                     onPressed: () async {
-                      await membershipService.cancelMembership(
-                        activeMembership!['membership_id'],
+                      final confirmed = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          title: const Text(
+                            "Cancel Membership",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF3E2723),
+                            ),
+                          ),
+                          content: const Text(
+                            "Are you sure you want to cancel your membership? Your membership access will end immediately and payments are non-refundable.",
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, false),
+                              child: const Text(
+                                "No, Keep It",
+                                style: TextStyle(color: Color(0xFF6D4C41)),
+                              ),
+                            ),
+                            ElevatedButton(
+                              onPressed: () => Navigator.pop(ctx, true),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: const Text(
+                                "Yes, Cancel",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
                       );
-                      if (!mounted) return;
-                      SnackbarHelper.showSuccess(context, 'Membership cancelled');
-                      await loadActiveMembership();
-                      setState(() {});
+
+                      if (confirmed == true) {
+                        await membershipService.cancelMembership(
+                          activeMembership!['membership_id'],
+                        );
+
+                        if (!mounted) return;
+
+                        SnackbarHelper.showSuccess(
+                          context,
+                          'Membership cancelled successfully',
+                        );
+
+                        await loadActiveMembership();
+                        setState(() {});
+                      }
                     },
                     child: const Text(
                       "Cancel",

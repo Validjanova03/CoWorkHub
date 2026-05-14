@@ -1,8 +1,8 @@
 import 'package:coworkhub/database/db_helper.dart';
 
 class BookingService {
-  //lyan's work
   final DBHelper dbHelper = DBHelper();
+
   Future<bool> isTimeSlotAvailable({
     required int resourceId,
     required DateTime start,
@@ -60,6 +60,7 @@ class BookingService {
       'start_time': startDateTime.toString(),
       'end_time': endDateTime.toString(),
       'booking_status': 'Active',
+      'created_at': DateTime.now().toString(), // ADD THIS
     });
 
     return bookingId;
@@ -68,7 +69,7 @@ class BookingService {
   Future<void> cancelBooking(int bookingId) async {
     await dbHelper.cancelBooking(bookingId);
   }
-  // Get all bookings for a specific room
+
   Future<List<Map<String, dynamic>>> getBookingsByResource(int resourceId) async {
     return await dbHelper.getBookingsByResource(resourceId);
   }

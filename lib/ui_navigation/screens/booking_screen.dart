@@ -167,7 +167,22 @@ class _BookingScreenState extends State<BookingScreen> {
       if (!mounted) return;
       setState(() => _isLoading = false);
 
-      _showPaymentDialog(bookingId);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PaymentScreen(
+            bookingId: bookingId,
+            userId: widget.userId,
+            userName: widget.userName,
+            resourceName: widget.resourceName,
+            date: _formatDate(),
+            startTime: _startTime,
+            endTime: _endTime,
+            capacity: widget.capacity,
+            total: _totalPrice,
+          ),
+        ),
+      );
 
 
     } catch (e) {
@@ -179,55 +194,7 @@ class _BookingScreenState extends State<BookingScreen> {
   void _showError(String message) {
     SnackbarHelper.showError(context, message);
   }
-  void _showPaymentDialog(int bookingId) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text("Booking Created!",
-            style: TextStyle(fontWeight: FontWeight.bold)),
-        content: const Text("Would you like to proceed to payment?"),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              Navigator.pushReplacement(context, MaterialPageRoute(
-                builder: (_) => HomeScreen(
-                  userId: widget.userId,
-                  userName: widget.userName,
-                ),
-              ));
-            },
-            child: const Text("Later",
-                style: TextStyle(color: Colors.black)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              Navigator.push(context, MaterialPageRoute(
-                builder: (_) => PaymentScreen(
-                  bookingId: bookingId,
-                  userId: widget.userId,
-                  userName: widget.userName,
-                  resourceName: widget.resourceName,
-                  date: _formatDate(),
-                  startTime: _startTime,
-                  endTime: _endTime,
-                  capacity: widget.capacity,
-                  total: _totalPrice,
-                ),
-              ));
-            },
-            style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6D4C41)),
-            child: const Text("Proceed to Payment",
-                style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
+
   Future<void> _loadRoomBookings() async {
     final data = await bookingService.getBookingsByResource(widget.resourceId);
     setState(() => _roomBookings = data);

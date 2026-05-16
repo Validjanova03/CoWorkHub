@@ -27,7 +27,7 @@ class DBHelper {
     String path = join(await getDatabasesPath(), 'app.db');
     return await openDatabase(
       path,
-      version: 14, // bumped from 13
+      version: 15, // bumped from 13
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -158,6 +158,18 @@ class DBHelper {
         FOREIGN KEY (resource_id) REFERENCES resources(resource_id)
       )
     ''');
+    await db.execute('''
+  CREATE TABLE notifications (
+    notification_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    title TEXT,
+    message TEXT,
+    icon_type TEXT,
+    is_read INTEGER DEFAULT 0,
+    created_at TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+  )
+''');
 
     await db.insert('plans', {
       'plan_name': 'Weekly',
@@ -311,6 +323,38 @@ class DBHelper {
     if (oldVersion < 13) {
       try {
         await db.execute('ALTER TABLE booking ADD COLUMN created_at TEXT');
+      } catch (e) {}
+    }
+    if (oldVersion < 14) {
+      try {
+        await db.execute('''
+      CREATE TABLE IF NOT EXISTS notifications (
+        notification_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        title TEXT,
+        message TEXT,
+        icon_type TEXT,
+        is_read INTEGER DEFAULT 0,
+        created_at TEXT,
+        FOREIGN KEY (user_id) REFERENCES users(user_id)
+      )
+    ''');
+      } catch (e) {}
+    }
+    if (oldVersion < 15) {
+      try {
+        await db.execute('''
+      CREATE TABLE IF NOT EXISTS notifications (
+        notification_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        title TEXT,
+        message TEXT,
+        icon_type TEXT,
+        is_read INTEGER DEFAULT 0,
+        created_at TEXT,
+        FOREIGN KEY (user_id) REFERENCES users(user_id)
+      )
+    ''');
       } catch (e) {}
     }
   }
@@ -519,10 +563,10 @@ class DBHelper {
     return await dbClient.query(
       'booking',
       where: '''
-        resource_id = ? AND booking_status = ? AND
-        NOT (end_time <= ? OR start_time >= ?)
-      ''',
-      whereArgs: [resourceId, 'Active', startTime, endTime],
+      resource_id = ? AND (booking_status = 'Active' OR booking_status = 'confirmed') AND
+      NOT (end_time <= ? OR start_time >= ?)
+    ''',
+      whereArgs: [resourceId, startTime, endTime],
     );
   }
 
@@ -543,12 +587,12 @@ class DBHelper {
     ''', [userId]);
   }
 
-  Future<List<Map<String, dynamic>>> getBookingsByResource(int resourceId) async {
+  Future<List<Map<String, dynamic>>> getBookingsByResource(int resourceId, String date) async {
     final dbClient = await db;
     return await dbClient.query(
       'booking',
-      where: 'resource_id = ? AND booking_status != ?',
-      whereArgs: [resourceId, 'Cancelled'],
+      where: 'resource_id = ? AND booking_status != ? AND DATE(start_time) = ?',
+      whereArgs: [resourceId, 'Cancelled', date],
       orderBy: 'start_time ASC',
     );
   }
@@ -589,5 +633,50 @@ class DBHelper {
       JOIN workspace w ON r.resource_id = w.resource_id
       WHERE f.user_id = ?
     ''', [userId]);
+  }
+
+  Future<int> insertNotification(Map<String, dynamic> notification) async {
+    final dbClient = await db;
+    return await dbClient.insert('notifications', notification);
+  }
+
+  Future<List<Map<String, dynamic>>> getNotifications(int userId) async {
+    final dbClient = await db;
+    return await dbClient.query(
+      'notifications',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      orderBy: 'created_at DESC',
+    );
+  }
+
+  Future<void> markNotificationAsRead(int notificationId) async {
+    final dbClient = await db;
+    await dbClient.update(
+      'notifications',
+      {'is_read': 1},
+      where: 'notification_id = ?',
+      whereArgs: [notificationId],
+    );
+  }
+
+  Future<void> markAllNotificationsAsRead(int userId) async {
+    final dbClient = await db;
+    await dbClient.update(
+      'notifications',
+      {'is_read': 1},
+      where: 'user_id = ?',
+      whereArgs: [userId],
+    );
+  }
+
+  Future<bool> hasReminderForBooking(int userId, int bookingId) async {
+    final dbClient = await db;
+    final result = await dbClient.query(
+      'notifications',
+      where: 'user_id = ? AND icon_type = ? AND message LIKE ?',
+      whereArgs: [userId, 'reminder', '%#$bookingId%'],
+    );
+    return result.isNotEmpty;
   }
 }

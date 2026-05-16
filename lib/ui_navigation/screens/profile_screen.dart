@@ -6,7 +6,7 @@ import 'package:coworkhub/ui_navigation/screens/about_screen.dart';
 import 'package:coworkhub/ui_navigation/screens/help_support_screen.dart';
 import 'package:coworkhub/ui_navigation/screens/notification_screen.dart';
 import 'package:coworkhub/ui_navigation/screens/favourites_screen.dart';
-
+import 'package:coworkhub/ui_navigation/screens/welcome_screen.dart';
 class ProfileScreen extends StatefulWidget {
   final int userId;
   final String userName;
@@ -174,10 +174,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       userName: widget.userName,
                     ),
                   ),
-                ).then((_) {
-                  Navigator.pop(context, true);
-                });
-
+                );
               },
             ),
             _MenuItem(
@@ -187,7 +184,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const NotificationsScreen(),
+                    builder: (_) => NotificationsScreen(userId: widget.userId),
                   ),
                 );
               },
@@ -230,7 +227,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 height: 52,
                 child: ElevatedButton.icon(
                   onPressed: () =>
-                      Navigator.pushReplacementNamed(context, '/'),
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+                            (route) => false,
+
+                      ),
+
                   icon: const Icon(Icons.logout_rounded),
                   label: const Text(
                     'Logout',

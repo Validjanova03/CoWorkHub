@@ -11,6 +11,8 @@ import 'package:coworkhub/ui_navigation/screens/notification_screen.dart';
 import 'package:coworkhub/ui_navigation/helper/workspace_helpers.dart';
 import 'package:coworkhub/payment_feedback_logic/services/feedback_service.dart';
 import 'package:coworkhub/ui_navigation/screens/membership_screen.dart';
+import 'package:coworkhub/booking_membership_logic/services/booking_service.dart';
+import 'package:coworkhub/database/db_helper.dart';
 
 class HomeScreen extends StatefulWidget {
   final int userId;
@@ -36,6 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<int, double> _workspaceRatings = {};
   final FeedbackService feedbackService = FeedbackService();
   final FavoriteService _favoriteService = FavoriteService();
+  final BookingService _bookingService = BookingService();
   Map<int, bool> _favoriteStatus = {};
 
   IconData _getGreetingIcon() {
@@ -75,6 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       setState(() => _isLoading = false);
       await _loadFavorites();
+      await _checkTodayBookings();
     } catch (e) {
       setState(() => _isLoading = false);
       debugPrint('Error: $e');
@@ -88,6 +92,56 @@ class _HomeScreenState extends State<HomeScreen> {
       await _favoriteService.isFavorite(widget.userId, resourceId);
     }
     setState(() {});
+  }
+
+  Future<void> _checkTodayBookings() async {
+    final today = DateTime.now();
+    final todayStr =
+        "${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}";
+
+    final bookings = await _bookingService.getUserBookings(widget.userId);
+    for (final booking in bookings) {
+      if (booking['booking_status'] == 'confirmed' ||
+          booking['booking_status'] == 'Active') {
+        final startTime = DateTime.tryParse(booking['start_time'] ?? '');
+        if (startTime == null) continue;
+
+        final bookingDate =
+            "${startTime.year}-${startTime.month.toString().padLeft(2, '0')}-${startTime.day.toString().padLeft(2, '0')}";
+
+        if (bookingDate == todayStr) {
+          final alreadyNotified = await DBHelper().hasReminderForBooking(
+            widget.userId,
+            booking['booking_id'],
+          );
+
+          if (!alreadyNotified) {
+            await DBHelper().insertNotification({
+              'user_id': widget.userId,
+              'title': 'Booking Reminder',
+              'message':
+              'You have a booking today at ${booking['resource_name']} from ${_formatTime(booking['start_time'])} – ${_formatTime(booking['end_time'])} #${booking['booking_id']}',
+              'icon_type': 'reminder',
+              'is_read': 0,
+              'created_at': DateTime.now().toString(),
+            });
+          }
+        }
+      }
+    }
+  }
+
+  String _formatTime(String dateTime) {
+    try {
+      final dt = DateTime.parse(dateTime);
+      final hour =
+      dt.hour > 12 ? dt.hour - 12 : dt.hour == 0 ? 12 : dt.hour;
+      final minute = dt.minute.toString().padLeft(2, '0');
+      final period = dt.hour >= 12 ? 'PM' : 'AM';
+      return "$hour:$minute $period";
+    } catch (e) {
+      return dateTime;
+    }
   }
 
   String getInitials() {
@@ -177,7 +231,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFFAF7F4),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF6D4C41)))
+          ? const Center(
+          child: CircularProgressIndicator(color: Color(0xFF6D4C41)))
           : pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
@@ -187,9 +242,7 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.white,
         elevation: 8,
         onTap: (index) async {
-
           setState(() => _currentIndex = index);
-
           await _loadFavorites();
         },
         items: const [
@@ -267,8 +320,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             color: Colors.white70, size: 14),
                         SizedBox(width: 4),
                         Text("Istanbul, Kadiköy",
-                            style:
-                            TextStyle(color: Colors.white70, fontSize: 12)),
+                            style: TextStyle(
+                                color: Colors.white70, fontSize: 12)),
                       ],
                     ),
                   ],
@@ -282,7 +335,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => const NotificationsScreen(),
+                              builder: (_) => NotificationsScreen(
+                                userId: widget.userId,
+                              ),
                             ));
                       },
                     ),
@@ -336,8 +391,10 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 _category(Icons.laptop_mac_rounded, "Hot Desk", "Hot Desk"),
                 _category(Icons.groups_rounded, "Meeting", "Meeting"),
-                _category(Icons.present_to_all_rounded, "Conference", "Conference"),
-                _category(Icons.lock_outline_rounded, "Dedicated", "Dedicated Room"),
+                _category(
+                    Icons.present_to_all_rounded, "Conference", "Conference"),
+                _category(
+                    Icons.lock_outline_rounded, "Dedicated", "Dedicated Room"),
               ],
             ),
           ),
@@ -358,7 +415,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: Color(0xFF3E2723))),
                   SizedBox(height: 4),
                   Text("Find the best spaces for your productivity",
-                      style: TextStyle(fontSize: 13, color: Color(0xFF8D6E63))),
+                      style:
+                      TextStyle(fontSize: 13, color: Color(0xFF8D6E63))),
                 ],
               ),
             ),
@@ -460,15 +518,18 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.all(32),
               child: Column(
                 children: const [
-                  Icon(Icons.search_off, size: 64, color: Color(0xFF8D6E63)),
+                  Icon(Icons.search_off,
+                      size: 64, color: Color(0xFF8D6E63)),
                   SizedBox(height: 16),
                   Text("No workspaces found",
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 16, color: Color(0xFF8D6E63))),
+                      style: TextStyle(
+                          fontSize: 16, color: Color(0xFF8D6E63))),
                   SizedBox(height: 8),
                   Text("Try \"Hot Desk\" or \"Meeting Room\"",
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 12, color: Color(0xFF8D6E63))),
+                      style: TextStyle(
+                          fontSize: 12, color: Color(0xFF8D6E63))),
                 ],
               ),
             )
@@ -715,65 +776,42 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Stack(
               children: [
-
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-
                   child: Image.asset(
                     WorkspaceHelpers.getImage(name),
                     width: 80,
                     height: 80,
                     fit: BoxFit.cover,
-
-                    errorBuilder:
-                        (context, error, stackTrace) =>
-                        Container(
-                          width: 120,
-                          height: 120,
-                          color: const Color(0xFFE8D5D0),
-
-                          child: const Icon(
-                            Icons.meeting_room,
-                            size: 50,
-                            color: Color(0xFF8D6E63),
-                          ),
-                        ),
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      width: 120,
+                      height: 120,
+                      color: const Color(0xFFE8D5D0),
+                      child: const Icon(Icons.meeting_room,
+                          size: 50, color: Color(0xFF8D6E63)),
+                    ),
                   ),
                 ),
-
                 Positioned(
                   top: 6,
                   right: 6,
-
                   child: GestureDetector(
-
                     onTap: () async {
-
-                      final newStatus =
-                      await _favoriteService.toggleFavorite(
+                      final newStatus = await _favoriteService.toggleFavorite(
                         widget.userId,
                         resourceId,
                         isFav,
                       );
-
                       setState(() {
-                        _favoriteStatus[resourceId] =
-                            newStatus;
+                        _favoriteStatus[resourceId] = newStatus;
                       });
                     },
-
                     child: Icon(
-
                       isFav
                           ? Icons.favorite_rounded
                           : Icons.favorite_border_rounded,
-
-                      color: isFav
-                          ? Colors.pinkAccent
-                          : Colors.white,
-
+                      color: isFav ? Colors.pinkAccent : Colors.white,
                       size: 22,
-
                       shadows: const [
                         Shadow(
                           blurRadius: 6,

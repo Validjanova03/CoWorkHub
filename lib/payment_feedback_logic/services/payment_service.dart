@@ -5,7 +5,6 @@ import '../models/payment.dart';
 class PaymentService {
   final DBHelper _db = DBHelper();
 
-  // Calculate total cost for a booking based on resource rate and duration
   Future<double> calculateBookingCost(int bookingId) async {
     final booking = await _db.getBookingById(bookingId);
     if (booking == null) throw Exception('Booking not found');
@@ -24,7 +23,6 @@ class PaymentService {
       case 'Hour':
         return rate * hours;
       case 'Page':
-      // For printer – assume 10 pages per booking (or could be passed from UI)
         return rate * 10;
       case 'Unit':
         return rate;
@@ -33,7 +31,6 @@ class PaymentService {
     }
   }
 
-  // Generate invoice for a specific booking
   Future<Invoice> generateInvoiceForBooking(int bookingId, int userId) async {
     double total = await calculateBookingCost(bookingId);
     String issueDate = DateTime.now().toIso8601String();
@@ -50,7 +47,6 @@ class PaymentService {
     );
 
     int id = await _db.insertInvoice(invoice.toMap());
-    // Return invoice with the new ID
     return Invoice(
       invoiceId: id,
       userId: userId,
@@ -63,7 +59,6 @@ class PaymentService {
     );
   }
 
-  // Process payment for an invoice
   Future<bool> processPayment(int invoiceId, String method) async {
     final paymentDate = DateTime.now().toIso8601String();
     final payment = Payment(
@@ -76,10 +71,19 @@ class PaymentService {
     await _db.insertPayment(payment.toMap());
     await _db.updateInvoiceStatus(invoiceId, 'paid');
 
-    // Update booking status if invoice has booking_id
     final invoiceMap = await _db.getInvoiceById(invoiceId);
     if (invoiceMap != null && invoiceMap['booking_id'] != null) {
       await _db.updateBookingStatus(invoiceMap['booking_id'], 'confirmed');
+
+      // Insert payment received notification
+      await _db.insertNotification({
+        'user_id': invoiceMap['user_id'],
+        'title': 'Payment Received',
+        'message': 'Your payment has been received and booking is confirmed!',
+        'icon_type': 'payment',
+        'is_read': 0,
+        'created_at': DateTime.now().toString(),
+      });
     }
 
     return true;

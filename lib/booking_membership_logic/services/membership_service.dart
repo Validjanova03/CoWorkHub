@@ -33,6 +33,16 @@ class MembershipService {
       'status': 'Active',
     });
 
+    // Insert membership notification
+    await dbHelper.insertNotification({
+      'user_id': userId,
+      'title': 'Membership Active',
+      'message': 'Your membership plan is now active. Enjoy your benefits!',
+      'icon_type': 'membership',
+      'is_read': 0,
+      'created_at': DateTime.now().toString(),
+    });
+
     return null;
   }
 

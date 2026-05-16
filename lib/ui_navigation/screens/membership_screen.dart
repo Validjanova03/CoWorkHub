@@ -157,6 +157,7 @@ class _MembershipPlansScreenState extends State<MembershipPlansScreen> {
                     });
                   },
                   decoration: InputDecoration(
+                    counterText: "",
                     hintText: "1234 5678 9012 3456",
                     hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
                     prefixIcon: const Icon(Icons.credit_card_rounded,
@@ -242,6 +243,7 @@ class _MembershipPlansScreenState extends State<MembershipPlansScreen> {
                               ExpiryDateFormatter(),
                             ],
                             decoration: InputDecoration(
+                              counterText: "",
                               hintText: "MM/YY",
                               hintStyle: const TextStyle(
                                   color: Color(0xFF9CA3AF)),

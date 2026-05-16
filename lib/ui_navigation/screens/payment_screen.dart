@@ -120,8 +120,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
       );
       if (success && mounted) {
         Navigator.pop(context); // close bottom sheet
-        SnackbarHelper.showSuccess(context, 'Payment successful! Booking confirmed. ');
-        Navigator.pushReplacement(
+        SnackbarHelper.showSuccess(context, 'Payment successful! Booking confirmed.');
+        Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
             builder: (_) => HomeScreen(
@@ -129,6 +129,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               userName: widget.userName,
             ),
           ),
+              (route) => false,
         );
       }
     } catch (e) {

@@ -9,7 +9,6 @@ class BookingService {
     required DateTime end,
   }) async {
     final db = await dbHelper.db;
-
     final result = await db.rawQuery('''
       SELECT * FROM booking
       WHERE resource_id = ?
@@ -22,7 +21,6 @@ class BookingService {
       start.toString(),
       end.toString(),
     ]);
-
     return result.isEmpty;
   }
 
@@ -60,18 +58,40 @@ class BookingService {
       'start_time': startDateTime.toString(),
       'end_time': endDateTime.toString(),
       'booking_status': 'Active',
-      'created_at': DateTime.now().toString(), // ADD THIS
+      'created_at': DateTime.now().toString(),
+    });
+
+    // Insert booking created notification
+    await dbHelper.insertNotification({
+      'user_id': userId,
+      'title': 'Booking Created!',
+      'message': 'Your booking has been created. Please complete payment within 10 minutes.',
+      'icon_type': 'booking',
+      'is_read': 0,
+      'created_at': DateTime.now().toString(),
     });
 
     return bookingId;
   }
 
   Future<void> cancelBooking(int bookingId) async {
+    final booking = await dbHelper.getBookingById(bookingId);
     await dbHelper.cancelBooking(bookingId);
+
+    if (booking != null) {
+      await dbHelper.insertNotification({
+        'user_id': booking['user_id'],
+        'title': 'Booking Cancelled',
+        'message': 'Your booking has been cancelled successfully.',
+        'icon_type': 'cancelled',
+        'is_read': 0,
+        'created_at': DateTime.now().toString(),
+      });
+    }
   }
+
   Future<void> confirmBooking(int bookingId) async {
     final db = await dbHelper.db;
-
     await db.update(
       'booking',
       {'booking_status': 'confirmed'},
@@ -79,7 +99,8 @@ class BookingService {
       whereArgs: [bookingId],
     );
   }
-  Future<List<Map<String, dynamic>>> getBookingsByResource(int resourceId) async {
-    return await dbHelper.getBookingsByResource(resourceId);
+
+  Future<List<Map<String, dynamic>>> getBookingsByResource(int resourceId, String date) async {
+    return await dbHelper.getBookingsByResource(resourceId, date);
   }
 }

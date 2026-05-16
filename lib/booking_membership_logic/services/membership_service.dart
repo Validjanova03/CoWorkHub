@@ -25,6 +25,26 @@ class MembershipService {
       return 'User already has an active membership';
     }
 
+    final plans = await dbHelper.getPlans();
+    final selectedPlan = plans.firstWhere((p) => p['plan_id'] == planId);
+
+    final invoiceId = await dbHelper.insertInvoice({
+      'user_id': userId,
+      'booking_id': null,
+      'issue_date': DateTime.now().toString(),
+      'due_date': DateTime.now().toString(),
+      'discount': 0.0,
+      'total': selectedPlan['price'],
+      'status': 'paid',
+    });
+
+    await dbHelper.insertPayment({
+      'invoice_id': invoiceId,
+      'payment_date': DateTime.now().toString(),
+      'method': 'Credit Card',
+      'status': 'completed',
+    });
+
     await dbHelper.insertMembership({
       'user_id': userId,
       'plan_id': planId,
@@ -33,7 +53,6 @@ class MembershipService {
       'status': 'Active',
     });
 
-    // Insert membership notification
     await dbHelper.insertNotification({
       'user_id': userId,
       'title': 'Membership Active',

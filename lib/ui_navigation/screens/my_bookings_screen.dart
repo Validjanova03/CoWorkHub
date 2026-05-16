@@ -234,7 +234,40 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                   if (_selectedTab == 0) {
                     return _upcomingCard(booking);
                   } else {
-                    return _bookingCard(booking);
+                    return Dismissible(
+                      key: ValueKey(booking['booking_id']),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 20),
+                        color: Colors.red,
+                        child: const Icon(Icons.delete, color: Colors.white),
+                      ),
+                      confirmDismiss: (_) async {
+                        return await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text("Delete History"),
+                            content: const Text("Remove this booking from history?"),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, false),
+                                child: const Text("Cancel"),
+                              ),
+                              ElevatedButton(
+                                onPressed: () => Navigator.pop(ctx, true),
+                                child: const Text("Delete"),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                      onDismissed: (_) async {
+                        await bookingService.deleteBooking(booking['booking_id']);
+                        _loadBookings();
+                      },
+                      child: _bookingCard(booking),
+                    );
                   }
                 },
               ),

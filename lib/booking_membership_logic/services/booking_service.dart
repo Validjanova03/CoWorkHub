@@ -103,4 +103,14 @@ class BookingService {
   Future<List<Map<String, dynamic>>> getBookingsByResource(int resourceId, String date) async {
     return await dbHelper.getBookingsByResource(resourceId, date);
   }
+
+  Future<void> deleteBooking(int bookingId) async {
+    final db = await dbHelper.db;
+
+    await db.delete(
+      'booking',
+      where: 'booking_id = ?',
+      whereArgs: [bookingId],
+    );
+  }
 }

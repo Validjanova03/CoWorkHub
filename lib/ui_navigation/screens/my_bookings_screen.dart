@@ -3,7 +3,7 @@ import 'package:coworkhub/booking_membership_logic/services/booking_service.dart
 import 'package:coworkhub/ui_navigation/helper/workspace_helpers.dart';
 import 'package:coworkhub/ui_navigation/screens/payment_screen.dart';
 import 'package:coworkhub/ui_navigation/helper/snackbar_helper.dart';
-
+import 'package:coworkhub/booking_membership_logic/services/membership_service.dart';
 class MyBookingsScreen extends StatefulWidget {
   final int userId;
   final String userName;
@@ -19,6 +19,8 @@ class MyBookingsScreen extends StatefulWidget {
 
 class _MyBookingsScreenState extends State<MyBookingsScreen> {
   final BookingService bookingService = BookingService();
+  final MembershipService membershipService = MembershipService();
+  bool hasActiveMembership = false;
   List<Map<String, dynamic>> bookings = [];
   bool isLoading = true;
   int _selectedTab = 0;
@@ -28,18 +30,25 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     super.initState();
     _loadBookings();
   }
-
   Future<void> _loadBookings() async {
     setState(() => isLoading = true);
+
     final data = await bookingService.getUserBookings(widget.userId);
+    final memberships = await membershipService.getUserMemberships(widget.userId);
+
+    final active = memberships.any((m) => m['status'] == 'Active');
+
     setState(() {
       bookings = data;
+      hasActiveMembership = active;
       isLoading = false;
     });
 
-    for (final booking in data) {
-      if (booking['booking_status'] == 'Active') {
-        _checkAutoCancelBooking(booking);
+    if (!hasActiveMembership) {
+      for (final booking in data) {
+        if (booking['booking_status'] == 'Active') {
+          _checkAutoCancelBooking(booking);
+        }
       }
     }
   }
@@ -271,6 +280,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Orange warning banner
+          if (!hasActiveMembership)
           Container(
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -285,7 +295,9 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    "Please complete payment within 10 minutes or your booking will be automatically cancelled.",
+                      hasActiveMembership
+                          ? "Please confirm your free membership booking within 10 minutes or it will be automatically cancelled."
+                          : "Please complete payment within 10 minutes or your booking will be automatically cancelled.",
                     style: TextStyle(fontSize: 11, color: Colors.orange.shade800),
                   ),
                 ),
@@ -343,7 +355,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
-                              status,
+                              hasActiveMembership ? "Membership" : status,
                               style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
@@ -368,53 +380,65 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                         children: [
                           Expanded(
                             child: OutlinedButton(
-                              onPressed: () =>
-                                  _cancelBooking(booking['booking_id']),
+                              onPressed: () => _cancelBooking(booking['booking_id']),
                               style: OutlinedButton.styleFrom(
                                 side: const BorderSide(color: Colors.red),
                                 shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10)),
-                                padding:
-                                const EdgeInsets.symmetric(vertical: 12),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
                               ),
-                              child: const Text("Cancel Booking",
-                                  style: TextStyle(
-                                      color: Colors.red, fontSize: 13)),
+                              child: const Text(
+                                "Cancel Booking",
+                                style: TextStyle(color: Colors.red, fontSize: 13),
+                              ),
                             ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: ElevatedButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => PaymentScreen(
-                                      bookingId: booking['booking_id'],
-                                      userId: widget.userId,
-                                      userName: widget.userName,
-                                      resourceName:
-                                      booking['resource_name'] ?? 'Workspace',
-                                      date: _formatDateTime(
-                                          booking['start_time'] ?? ''),
-                                      startTime: null,
-                                      endTime: null,
-                                      capacity: 1,
-                                      total: 0.0,
+                              onPressed: () async {
+                                if (hasActiveMembership) {
+                                  await bookingService.confirmBooking(booking['booking_id']);
+
+                                  if (!mounted) return;
+
+                                  SnackbarHelper.showSuccess(
+                                    context,
+                                    "Booking confirmed with your membership!",
+                                  );
+
+                                  _loadBookings();
+                                } else {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => PaymentScreen(
+                                        bookingId: booking['booking_id'],
+                                        userId: widget.userId,
+                                        userName: widget.userName,
+                                        resourceName: booking['resource_name'] ?? 'Workspace',
+                                        date: _formatDateTime(booking['start_time'] ?? ''),
+                                        startTime: null,
+                                        endTime: null,
+                                        capacity: 1,
+                                        total: 0.0,
+                                      ),
                                     ),
-                                  ),
-                                );
+                                  );
+                                }
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF6D4C41),
                                 shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10)),
-                                padding:
-                                const EdgeInsets.symmetric(vertical: 12),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
                               ),
-                              child: const Text("Pay Now",
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 13)),
+                              child: Text(
+                                hasActiveMembership ? "Confirm Booking" : "Pay Now",
+                                style: const TextStyle(color: Colors.white, fontSize: 13),
+                              ),
                             ),
                           ),
                         ],

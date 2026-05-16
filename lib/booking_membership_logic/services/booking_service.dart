@@ -69,7 +69,16 @@ class BookingService {
   Future<void> cancelBooking(int bookingId) async {
     await dbHelper.cancelBooking(bookingId);
   }
+  Future<void> confirmBooking(int bookingId) async {
+    final db = await dbHelper.db;
 
+    await db.update(
+      'booking',
+      {'booking_status': 'confirmed'},
+      where: 'booking_id = ?',
+      whereArgs: [bookingId],
+    );
+  }
   Future<List<Map<String, dynamic>>> getBookingsByResource(int resourceId) async {
     return await dbHelper.getBookingsByResource(resourceId);
   }

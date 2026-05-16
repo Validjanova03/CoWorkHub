@@ -5,6 +5,7 @@ import 'package:coworkhub/payment_feedback_logic/services/payment_service.dart';
 import 'package:coworkhub/ui_navigation/screens/home_screen.dart';
 import 'package:coworkhub/ui_navigation/helper/workspace_helpers.dart';
 import 'package:coworkhub/ui_navigation/helper/snackbar_helper.dart';
+import 'package:coworkhub/booking_membership_logic/services/membership_service.dart';
 
 class BookingScreen extends StatefulWidget {
   final int userId;
@@ -33,6 +34,7 @@ class BookingScreen extends StatefulWidget {
 class _BookingScreenState extends State<BookingScreen> {
   final BookingService bookingService = BookingService();
   final PaymentService paymentService = PaymentService();
+  final MembershipService membershipService = MembershipService();
 
   DateTime? _selectedDate;
   TimeOfDay? _startTime;
@@ -48,6 +50,13 @@ class _BookingScreenState extends State<BookingScreen> {
     _loadRoomBookings();
   }
 
+  Future<bool> _hasActiveMembership() async {
+    final memberships = await membershipService.getUserMemberships(widget.userId);
+
+    return memberships.any((m) {
+      return m['status'] == 'Active';
+    });
+  }
   Future<void> _selectDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -160,12 +169,31 @@ class _BookingScreenState extends State<BookingScreen> {
       }
 
       final bookingId = result as int;
-      await paymentService.generateInvoiceForBooking(bookingId, widget.userId);
+
+      final hasMembership = await _hasActiveMembership();
 
       if (!mounted) return;
       setState(() => _isLoading = false);
 
-      _showPaymentDialog(bookingId);
+      if (hasMembership) {
+        SnackbarHelper.showSuccess(
+          context,
+          "Booking confirmed for free with your active membership!",
+        );
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => HomeScreen(
+              userId: widget.userId,
+              userName: widget.userName,
+            ),
+          ),
+        );
+      } else {
+        await paymentService.generateInvoiceForBooking(bookingId, widget.userId);
+        _showPaymentDialog(bookingId);
+      }
 
     } catch (e) {
       _showError("Error creating booking: $e");

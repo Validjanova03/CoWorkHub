@@ -28,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => isLoading = false);
 
     if (user != null) {
-      Navigator.pushReplacement(
+      Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
           builder: (_) => HomeScreen(
@@ -36,6 +36,7 @@ class _LoginScreenState extends State<LoginScreen> {
             userName: "${user['first_name']} ${user['last_name']}",
           ),
         ),
+          (route) => false,
       );
     } else {
       SnackbarHelper.showError(context, 'Invalid email or password');

@@ -64,7 +64,10 @@ class _BookingScreenState extends State<BookingScreen> {
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 30)),
     );
-    if (picked != null) setState(() => _selectedDate = picked);
+    if (picked != null) {
+      setState(() => _selectedDate = picked);
+      await _loadRoomBookings(); // ADD THIS
+    }
   }
 
   Future<void> _pickStartTime() async {
@@ -94,9 +97,17 @@ class _BookingScreenState extends State<BookingScreen> {
       int startMinutes = _startTime!.hour * 60 + _startTime!.minute;
       int endMinutes = _endTime!.hour * 60 + _endTime!.minute;
       int diffMinutes = endMinutes - startMinutes;
-      if (diffMinutes < 0) diffMinutes += 24 * 60;
+
+      if (diffMinutes <= 0) {
+        _durationHours = 0;
+        SnackbarHelper.showError(context, "End time must be after start time");
+        setState(() {});
+        return;
+      }
+
       if (diffMinutes < 60) {
         _durationHours = 0;
+        SnackbarHelper.showError(context, "Minimum booking duration is 1 hour");
       } else {
         _durationHours = diffMinutes / 60;
       }
@@ -181,7 +192,7 @@ class _BookingScreenState extends State<BookingScreen> {
           "Booking confirmed for free with your active membership!",
         );
 
-        Navigator.pushReplacement(
+        Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
             builder: (_) => HomeScreen(
@@ -189,6 +200,7 @@ class _BookingScreenState extends State<BookingScreen> {
               userName: widget.userName,
             ),
           ),
+            (route) => false,
         );
       } else {
         await paymentService.generateInvoiceForBooking(bookingId, widget.userId);
@@ -219,7 +231,7 @@ class _BookingScreenState extends State<BookingScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
-              Navigator.pushReplacement(
+              Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(
                   builder: (_) => HomeScreen(
@@ -227,6 +239,7 @@ class _BookingScreenState extends State<BookingScreen> {
                     userName: widget.userName,
                   ),
                 ),
+                  (route) => false,
               );
             },
             child: const Text(
@@ -274,7 +287,9 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   Future<void> _loadRoomBookings() async {
-    final data = await bookingService.getBookingsByResource(widget.resourceId);
+    final date = _selectedDate ?? DateTime.now();
+    final dateStr = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+    final data = await bookingService.getBookingsByResource(widget.resourceId, dateStr);
     setState(() => _roomBookings = data);
   }
 

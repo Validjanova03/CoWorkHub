@@ -51,26 +51,44 @@ class _PaymentScreenState extends State<PaymentScreen> {
     //  Required fields
     if (card.isEmpty || name.isEmpty || expiry.isEmpty || cvv.isEmpty) {
       Navigator.pop(context);
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) {
       SnackbarHelper.showError(context, "All fields are required");
+        }
+      });
       return;
     }
 
     //  Card must be exactly 16 digits
     if (card.length != 16 || !RegExp(r'^[0-9]+$').hasMatch(card)) {
       Navigator.pop(context);
-      SnackbarHelper.showError(context, "Card number must be exactly 16 digits");
+
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) {
+          SnackbarHelper.showError(context, "Card number must be exactly 16 digits");
+        }
+      });
+
       return;
     }
 
     //  CVV must be 3 digits
     if (cvv.length != 3) {
       Navigator.pop(context);
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) {
       SnackbarHelper.showError(context, "Invalid CVV");
+        }
+      });
       return;
     }
     if (!RegExp(r'^(0[1-9]|1[0-2])\/\d{2}$').hasMatch(expiry)) {
       Navigator.pop(context);
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) {
       SnackbarHelper.showError(context, "Invalid expiry date");
+        }
+      });
       return;
     }
     //  Add this — check if card is expired
@@ -83,7 +101,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     if (year < currentYear || (year == currentYear && month < currentMonth)) {
       Navigator.pop(context);
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) {
       SnackbarHelper.showError(context, "Card has expired");
+    }
+  });
       return;
     }
 
@@ -152,301 +174,301 @@ class _PaymentScreenState extends State<PaymentScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
-          builder: (context, setSheetState) {
-            return Container(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(ctx).viewInsets.bottom,
-          ),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(24),
-              topRight: Radius.circular(24),
+        builder: (context, setSheetState) {
+          return Container(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(ctx).viewInsets.bottom,
             ),
-          ),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Handle bar
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFD7CCC8),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                const Text(
-                  "Card Information",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF3E2723),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Card Number
-              TextField(
-                controller: cardController,
-                keyboardType: TextInputType.number,
-                maxLength: 19,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(16),
-                ],
-                // ✅ Add this
-                onChanged: (value) {
-                  setSheetState(() {
-                    if (value.startsWith('4')) {
-                      detectedCard = 'visa';
-                    } else if (value.startsWith('5')) {
-                      detectedCard = 'mastercard';
-                    } else {
-                      detectedCard = '';
-                    }
-                  });
-                },
-                decoration: InputDecoration(
-                  hintText: "1234 5678 9012 3456",
-                  hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
-                  prefixIcon: const Icon(Icons.credit_card_rounded,
-                      color: Color(0xFF6D4C41)),
-                  // ✅ Add this
-                  suffixIcon: detectedCard.isNotEmpty
-                      ? Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Image.asset(
-                      'assets/images/$detectedCard.png',
-                      height: 30,
-                    ),
-                  )
-                      : null,
-                  counterText: "",
-                  filled: true,
-                  fillColor: const Color(0xFFFAF7F4),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFD7CCC8)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFD7CCC8)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF6D4C41)),
-                  ),
-                ),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(24),
+                topRight: Radius.circular(24),
               ),
-
-                const SizedBox(height: 16),
-
-                // Cardholder Name
-                const Text(
-                  "Cardholder Name",
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF3E2723),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: nameController,
-                  decoration: InputDecoration(
-                    hintText: "John Doe",
-                    hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
-                    prefixIcon: const Icon(Icons.person_outline_rounded,
-                        color: Color(0xFF6D4C41)),
-                    filled: true,
-                    fillColor: const Color(0xFFFAF7F4),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFD7CCC8)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFD7CCC8)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF6D4C41)),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Expiry and CVV
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "Expiry Date",
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF3E2723),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: expiryController,
-                            keyboardType: TextInputType.number,
-                            maxLength: 5,
-                            // "lyan" added the formater function
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                              ExpiryDateFormatter(),
-                            ],
-                            decoration: InputDecoration(
-                              hintText: "MM/YY",
-                              hintStyle:
-                              const TextStyle(color: Color(0xFF9CA3AF)),
-                              counterText: "",
-                              filled: true,
-                              fillColor: const Color(0xFFFAF7F4),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                const BorderSide(color: Color(0xFFD7CCC8)),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                const BorderSide(color: Color(0xFFD7CCC8)),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                const BorderSide(color: Color(0xFF6D4C41)),
-                              ),
-                            ),
-                          ),
-                        ],
+            ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Handle bar
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD7CCC8),
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "CVV",
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF3E2723),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: cvvController,
-                            keyboardType: TextInputType.number,
-                            maxLength: 3,
-                            obscureText: true,
-                            decoration: InputDecoration(
-                              hintText: "123",
-                              hintStyle:
-                              const TextStyle(color: Color(0xFF9CA3AF)),
-                              counterText: "",
-                              filled: true,
-                              fillColor: const Color(0xFFFAF7F4),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                const BorderSide(color: Color(0xFFD7CCC8)),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                const BorderSide(color: Color(0xFFD7CCC8)),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                const BorderSide(color: Color(0xFF6D4C41)),
-                              ),
-                            ),
-                          ),
-                        ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  const Text(
+                    "Card Information",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF3E2723),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Card Number
+                  TextField(
+                    controller: cardController,
+                    keyboardType: TextInputType.number,
+                    maxLength: 19,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(16),
+                    ],
+                    // ✅ Add this
+                    onChanged: (value) {
+                      setSheetState(() {
+                        if (value.startsWith('4')) {
+                          detectedCard = 'visa';
+                        } else if (value.startsWith('5')) {
+                          detectedCard = 'mastercard';
+                        } else {
+                          detectedCard = '';
+                        }
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: "1234 5678 9012 3456",
+                      hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
+                      prefixIcon: const Icon(Icons.credit_card_rounded,
+                          color: Color(0xFF6D4C41)),
+                      // ✅ Add this
+                      suffixIcon: detectedCard.isNotEmpty
+                          ? Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Image.asset(
+                          'assets/images/$detectedCard.png',
+                          height: 30,
+                        ),
+                      )
+                          : null,
+                      counterText: "",
+                      filled: true,
+                      fillColor: const Color(0xFFFAF7F4),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFFD7CCC8)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFFD7CCC8)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFF6D4C41)),
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // Total
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF5EDE8),
-                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                  const SizedBox(height: 16),
+
+                  // Cardholder Name
+                  const Text(
+                    "Cardholder Name",
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF3E2723),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      hintText: "John Doe",
+                      hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
+                      prefixIcon: const Icon(Icons.person_outline_rounded,
+                          color: Color(0xFF6D4C41)),
+                      filled: true,
+                      fillColor: const Color(0xFFFAF7F4),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFFD7CCC8)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFFD7CCC8)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFF6D4C41)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Expiry and CVV
+                  Row(
                     children: [
-                      const Text(
-                        "Total Amount",
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF3E2723),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              "Expiry Date",
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF3E2723),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            TextField(
+                              controller: expiryController,
+                              keyboardType: TextInputType.number,
+                              maxLength: 5,
+                              // "lyan" added the formater function
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                                ExpiryDateFormatter(),
+                              ],
+                              decoration: InputDecoration(
+                                hintText: "MM/YY",
+                                hintStyle:
+                                const TextStyle(color: Color(0xFF9CA3AF)),
+                                counterText: "",
+                                filled: true,
+                                fillColor: const Color(0xFFFAF7F4),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide:
+                                  const BorderSide(color: Color(0xFFD7CCC8)),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide:
+                                  const BorderSide(color: Color(0xFFD7CCC8)),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide:
+                                  const BorderSide(color: Color(0xFF6D4C41)),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      Text(
-                        "\$${invoice.total.toStringAsFixed(2)}",
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF5D4037),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              "CVV",
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF3E2723),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            TextField(
+                              controller: cvvController,
+                              keyboardType: TextInputType.number,
+                              maxLength: 3,
+                              obscureText: true,
+                              decoration: InputDecoration(
+                                hintText: "123",
+                                hintStyle:
+                                const TextStyle(color: Color(0xFF9CA3AF)),
+                                counterText: "",
+                                filled: true,
+                                fillColor: const Color(0xFFFAF7F4),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide:
+                                  const BorderSide(color: Color(0xFFD7CCC8)),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide:
+                                  const BorderSide(color: Color(0xFFD7CCC8)),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide:
+                                  const BorderSide(color: Color(0xFF6D4C41)),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
-                // Pay Now Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    //changed onpressed "lyan"
-                    onPressed: _isProcessing
-                        ? null
-                        : () => _validateAndPay(invoice, cardController, nameController, expiryController, cvvController),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF5D4037),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14)),
+                  // Total
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5EDE8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: _isProcessing
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text(
-                      "Pay Now",
-                      style: TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.bold),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Total Amount",
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF3E2723),
+                          ),
+                        ),
+                        Text(
+                          "\$${invoice.total.toStringAsFixed(2)}",
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF5D4037),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-              ],
+                  const SizedBox(height: 24),
+
+                  // Pay Now Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      //changed onpressed "lyan"
+                      onPressed: _isProcessing
+                          ? null
+                          : () => _validateAndPay(invoice, cardController, nameController, expiryController, cvvController),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF5D4037),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14)),
+                      ),
+                      child: _isProcessing
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                        "Pay Now",
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
             ),
-          ),
-            ); // closes Container
-          }, // closes StatefulBuilder
+          ); // closes Container
+        }, // closes StatefulBuilder
       ), // closes showModalBottomSheet
     );
   }

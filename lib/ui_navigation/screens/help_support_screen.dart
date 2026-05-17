@@ -58,8 +58,8 @@ class HelpSupportScreen extends StatelessWidget {
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
+                            children: const [
+                              Text(
                                 "How can we help you?",
                                 style: TextStyle(
                                   fontSize: 18,
@@ -67,36 +67,13 @@ class HelpSupportScreen extends StatelessWidget {
                                   color: Color(0xFF3E2723),
                                 ),
                               ),
-                              const SizedBox(height: 6),
-                              const Text(
+                              SizedBox(height: 6),
+                              Text(
                                 "We're here to help and ensure you have the best experience with CoworkHub.",
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Color(0xFF8D6E63),
                                   height: 1.5,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Row(
-                                  children: [
-                                    Icon(Icons.search,
-                                        color: Color(0xFF8D6E63), size: 18),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      "Search help articles...",
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: Color(0xFF8D6E63),
-                                      ),
-                                    ),
-                                  ],
                                 ),
                               ),
                             ],
@@ -184,8 +161,8 @@ class HelpSupportScreen extends StatelessWidget {
                         ),
                         _divider(),
                         _articleItem(
-                          "How can I cancel or reschedule a booking?",
-                          "Go to the Bookings tab, find your booking and tap Cancel Booking.",
+                          "How can I cancel a booking?",
+                          "You can only cancel a booking before paying for it. Go to the Bookings tab → Upcoming, find your unpaid booking and tap Cancel. Once a booking is paid, it can't be cancelled from the app.",
                         ),
                         _divider(),
                         _articleItem(
@@ -194,13 +171,13 @@ class HelpSupportScreen extends StatelessWidget {
                         ),
                         _divider(),
                         _articleItem(
-                          "How do I download my invoice?",
-                          "Go to the Payments tab, find your payment and tap to view the invoice details.",
+                          "What amenities are available in the workspaces?",
+                          "Most of our workspaces include high-speed Wi-Fi, power outlets, meeting rooms and a coffee bar. Specific amenities are listed on each workspace's detail page.",
                         ),
                         _divider(),
                         _articleItem(
-                          "How can I update my profile information?",
-                          "Go to Profile tab → Personal Information to update your details.",
+                          "How long do I have to complete my payment?",
+                          "If you choose Pay Later when booking, you need to complete your payment within 10 minutes. Otherwise, your booking will be cancelled automatically.",
                         ),
                       ],
                     ),
@@ -366,7 +343,6 @@ class HelpSupportScreen extends StatelessWidget {
     );
   }
 
-  // ✅ New method
   Widget _articleItem(String question, String answer) {
     return ExpansionTile(
       tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),

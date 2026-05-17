@@ -485,123 +485,123 @@ class _MembershipPlansScreenState extends State<MembershipPlansScreen> {
                         color: const Color(0xFF6D4C41),
                         borderRadius: BorderRadius.circular(16),
                       ),
-              child: Row(
-                children: [
-                  const Icon(Icons.verified_rounded,
-                      color: Colors.amber, size: 32),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Active Membership",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "Expires: ${activeMembership!['end_date']?.toString().split(' ')[0] ?? 'N/A'}",
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () async {
-                      final confirmed = await showDialog<bool>(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          title: const Text(
-                            "Cancel Membership",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF3E2723),
-                            ),
-                          ),
-                          content: const Text(
-                            "Are you sure you want to cancel your membership? Your membership access will end immediately and payments are non-refundable.",
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(ctx, false),
-                              child: const Text(
-                                "No, Keep It",
-                                style: TextStyle(color: Color(0xFF6D4C41)),
-                              ),
-                            ),
-                            ElevatedButton(
-                              onPressed: () => Navigator.pop(ctx, true),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.verified_rounded,
+                              color: Colors.amber, size: 32),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Active Membership",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
                                 ),
-                              ),
-                              child: const Text(
-                                "Yes, Cancel",
-                                style: TextStyle(color: Colors.white),
-                              ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  "Expires: ${activeMembership!['end_date']?.toString().split(' ')[0] ?? 'N/A'}",
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      );
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              final confirmed = await showDialog<bool>(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  title: const Text(
+                                    "Cancel Membership",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF3E2723),
+                                    ),
+                                  ),
+                                  content: const Text(
+                                    "Are you sure you want to cancel your membership? Your membership access will end immediately and payments are non-refundable.",
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(ctx, false),
+                                      child: const Text(
+                                        "No, Keep It",
+                                        style: TextStyle(color: Color(0xFF6D4C41)),
+                                      ),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () => Navigator.pop(ctx, true),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.red,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        "Yes, Cancel",
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
 
-                      if (confirmed == true) {
-                        await membershipService.cancelMembership(
-                          activeMembership!['membership_id'],
-                        );
+                              if (confirmed == true) {
+                                await membershipService.cancelMembership(
+                                  activeMembership!['membership_id'],
+                                );
 
-                        if (!mounted) return;
+                                if (!mounted) return;
 
-                        SnackbarHelper.showSuccess(
-                          context,
-                          'Membership cancelled successfully',
-                        );
+                                SnackbarHelper.showSuccess(
+                                  context,
+                                  'Membership cancelled successfully',
+                                );
 
-                        await loadActiveMembership();
-                        setState(() {});
-                      }
-                    },
-                    child: const Text(
-                      "Cancel",
-                      style: TextStyle(color: Colors.red),
+                                await loadActiveMembership();
+                                setState(() {});
+                              }
+                            },
+                            child: const Text(
+                              "Cancel",
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                    const Text(
+                      "Available Plans",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF3E2723),
+                      ),
                     ),
-                  const Text(
-                    "Available Plans",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF3E2723),
+                    const SizedBox(height: 4),
+                    const Text(
+                      "All plans include access to all workspaces",
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF8D6E63),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    "All plans include access to all workspaces",
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Color(0xFF8D6E63),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-             ],
+                    const SizedBox(height: 16),
+                  ],
 
 
                   // ── Plan Cards ──
@@ -720,7 +720,11 @@ class _MembershipPlansScreenState extends State<MembershipPlansScreen> {
                                         color: Color(0xFF6D4C41)),
                                     const SizedBox(width: 6),
                                     Text(
-                                      "$discount% discount applied",
+                                      planName.toLowerCase().contains('weekly')
+                                          ? "Unlimited weekly access"
+                                          : planName.toLowerCase().contains('yearly')
+                                          ? "Unlimited yearly access"
+                                          : "Unlimited monthly access",
                                       style: const TextStyle(
                                         fontSize: 13,
                                         color: Color(0xFF6D4C41),

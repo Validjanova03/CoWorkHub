@@ -27,7 +27,7 @@ class DBHelper {
     String path = join(await getDatabasesPath(), 'app.db');
     return await openDatabase(
       path,
-      version: 15, // bumped from 13
+      version: 17, // bumped from 13
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -187,7 +187,7 @@ class DBHelper {
 
     await db.insert('plans', {
       'plan_name': 'Premium',
-      'price': 750.0,
+      'price': 1499.0,
       'payment_periodicity': 'Yearly',
       'discount_applied': 15,
     });
@@ -355,6 +355,16 @@ class DBHelper {
         FOREIGN KEY (user_id) REFERENCES users(user_id)
       )
     ''');
+      } catch (e) {}
+    }
+    if (oldVersion < 17) {
+      try {
+        await db.update(
+          'plans',
+          {'price': 1499.0},
+          where: 'plan_name = ?',
+          whereArgs: ['Premium'],
+        );
       } catch (e) {}
     }
   }
